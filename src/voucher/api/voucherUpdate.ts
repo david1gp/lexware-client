@@ -4,7 +4,7 @@ import type { LexwareClient } from "../../shared/LexwareClient.js"
 import { lexwareErrorData } from "../../shared/lexwareErrorData.js"
 import { lexwareRequest } from "../../shared/lexwareRequest.js"
 import { type LexwareUnknownResponse, lexwareUnknownResponseSchema } from "../../shared/lexwareSchemas.js"
-import { type VoucherBody, voucherBodySchema } from "../schema/voucherSchemas.js"
+import { type VoucherBody, voucherUpdateBodySchema } from "../schema/voucherSchemas.js"
 
 export async function voucherUpdate(
   client: LexwareClient,
@@ -12,12 +12,12 @@ export async function voucherUpdate(
   input: VoucherBody,
 ): PromiseResult<LexwareUnknownResponse> {
   const op = "voucherUpdate"
-  const r = a.safeParse(voucherBodySchema, input)
+  const r = a.safeParse(voucherUpdateBodySchema, input)
   if (!r.success) return createResultError(op, a.summarize(r.issues), lexwareErrorData(input))
   return lexwareRequest(client, {
     op,
     method: "PUT",
-    path: `/v1/voucher/${encodeURIComponent(id)}`,
+    path: `/v1/vouchers/${encodeURIComponent(id)}`,
     body: r.output,
     schema: lexwareUnknownResponseSchema,
   })

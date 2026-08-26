@@ -1,4 +1,5 @@
 import * as a from "valibot"
+import { lexwareNonNegativeIntegerSchema } from "../../shared/lexwareSchemas.js"
 
 export const articleTypeSchema = a.picklist(["PRODUCT", "SERVICE"])
 
@@ -22,7 +23,9 @@ export const articleBodySchema = a.looseObject({
 })
 
 export const articleListInputSchema = a.object({
-  page: a.optional(a.number()),
+  page: a.optional(lexwareNonNegativeIntegerSchema),
+  articleNumber: a.optional(a.string()),
+  gtin: a.optional(a.string()),
   type: a.optional(articleTypeSchema),
 })
 

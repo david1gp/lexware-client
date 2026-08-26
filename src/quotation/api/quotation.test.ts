@@ -1,23 +1,7 @@
 import { expect, test } from "bun:test"
-import { lexwareRequestBodyJson, lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
+import { lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
 import { quotationCreate } from "./quotationCreate.js"
-import { quotationDelete } from "./quotationDelete.js"
-import { quotationList } from "./quotationList.js"
 import { quotationPdfDownload } from "./quotationPdfDownload.js"
-import { quotationUpdate } from "./quotationUpdate.js"
-
-test("quotationList builds page query", async () => {
-  const { client, calls } = lexwareTestClient()
-  await quotationList(client, { page: 3 })
-  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/quotations?page=3")
-})
-
-test("quotationDelete deletes quotation", async () => {
-  const { client, calls } = lexwareTestClient()
-  await quotationDelete(client, "q1")
-  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/quotations/q1")
-  expect(calls[0]?.init?.method).toBe("DELETE")
-})
 
 function binaryResponse(contentType: string): Response {
   return new Response(new Uint8Array([1, 2, 3]), { headers: { "Content-Type": contentType } })
@@ -39,14 +23,4 @@ test("quotationCreate rejects invalid line items", async () => {
     lineItems: [{ type: "wrong" }],
   } as never)
   expect(result.success).toBe(false)
-})
-
-test("quotationUpdate preserves partial update bodies", async () => {
-  const { client, calls } = lexwareTestClient()
-  const result = await quotationUpdate(client, "q1", { title: "Updated quotation" })
-
-  expect(result.success).toBe(true)
-  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/quotations/q1")
-  expect(calls[0]?.init?.method).toBe("PUT")
-  expect(await lexwareRequestBodyJson(calls[0]!)).toEqual({ title: "Updated quotation" })
 })

@@ -36,6 +36,7 @@ export const lexwareTaxTypeSchema = a.picklist([
   "externalService13b",
   "thirdPartyCountryService",
   "thirdPartyCountryDelivery",
+  "photovoltaicEquipment",
 ])
 
 export const lexwareTaxSubTypeSchema = a.picklist(["distanceSales", "electronicServices"])

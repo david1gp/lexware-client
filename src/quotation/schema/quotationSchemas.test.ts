@@ -4,12 +4,10 @@ import * as a from "valibot"
 import { quotationOptions } from "../cli/quotationCreateOptions.js"
 import {
   quotationCreateInputSchema,
+  quotationDateTimeSchema,
   quotationLineItemSchema,
-  quotationListInputSchema,
   quotationSubItemSchema,
   quotationTaxTypeSchema,
-  quotationUpdateBodySchema,
-  quotationUpdateInputSchema,
 } from "./quotationSchemas.js"
 
 const quotation = {
@@ -29,23 +27,12 @@ const quotation = {
   taxConditions: { taxType: "net" },
 }
 
-test("quotation create, update, and list schemas accept their domain inputs", () => {
+test("quotation create schema accepts its domain input", () => {
   expect(a.safeParse(quotationCreateInputSchema, quotation).success).toBe(true)
-  expect(a.safeParse(quotationUpdateInputSchema, { id: "quotation-1", quotation }).success).toBe(true)
-  expect(a.safeParse(quotationListInputSchema, { page: 2 }).success).toBe(true)
 })
 
-test("quotation update schema accepts partial bodies", () => {
-  expect(a.safeParse(quotationUpdateBodySchema, { title: "Updated quotation" }).success).toBe(true)
-  expect(a.safeParse(quotationUpdateInputSchema, { id: "quotation-1", quotation: { remark: "Updated" } }).success).toBe(
-    true,
-  )
-  expect(
-    a.safeParse(quotationUpdateInputSchema, {
-      id: "quotation-1",
-      quotation: { title: "Updated quotation", address: {}, totalPrice: {}, taxConditions: {} },
-    }).success,
-  ).toBe(true)
+test("quotation dates accept the API timestamp format", () => {
+  expect(a.safeParse(quotationDateTimeSchema, "2026-08-26T10:00:00.000Z").success).toBe(true)
 })
 
 test("quotation nested schemas enforce item and subitem rules", () => {

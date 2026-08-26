@@ -3,7 +3,6 @@ import { lexwareRequestBodyJson, lexwareTestClient } from "../../shared/lexwareT
 import type { InvoiceCreateInput } from "../schema/invoiceSchemas.js"
 import { invoiceCreate } from "./invoiceCreate.js"
 import { invoicePdfDownload } from "./invoicePdfDownload.js"
-import { invoiceUpdate } from "./invoiceUpdate.js"
 import { invoiceXmlDownload } from "./invoiceXmlDownload.js"
 
 const validInvoice: InvoiceCreateInput["invoice"] = {
@@ -33,6 +32,16 @@ test("invoiceCreate sends finalize query", async () => {
   expect(await lexwareRequestBodyJson(calls[0]!)).toEqual(validInvoice)
 })
 
+test("invoiceCreate sends preceding sales voucher query", async () => {
+  const { client, calls } = lexwareTestClient()
+  await invoiceCreate(client, {
+    invoice: validInvoice,
+    precedingSalesVoucherId: "sales-voucher-id",
+  })
+
+  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/invoices?precedingSalesVoucherId=sales-voucher-id")
+})
+
 function binaryResponse(contentType: string): Response {
   return new Response(new Uint8Array([1, 2, 3]), { headers: { "Content-Type": contentType } })
 }
@@ -55,25 +64,4 @@ test("invoiceXmlDownload downloads an XML invoice file", async () => {
   expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/invoices/invoice%2Fid/file")
   expect(new Headers(calls[0]?.init?.headers).get("Accept")).toBe("application/xml")
   if (result.success) expect(result.data.contentType).toBe("application/xml")
-})
-
-test("invoiceUpdate uses singular invoice path", async () => {
-  const { client, calls } = lexwareTestClient()
-  await invoiceUpdate(client, "i1", validInvoice)
-  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/invoice/i1")
-  expect(calls[0]?.init?.method).toBe("PUT")
-})
-
-test("invoiceUpdate preserves partial update requests", async () => {
-  const { client, calls } = lexwareTestClient()
-  const result = await invoiceUpdate(client, "i1", {
-    title: "Updated title",
-    lineItems: [{ name: "item" }],
-  })
-
-  expect(result.success).toBe(true)
-  expect(await lexwareRequestBodyJson(calls[0]!)).toEqual({
-    title: "Updated title",
-    lineItems: [{ name: "item" }],
-  })
 })

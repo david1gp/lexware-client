@@ -15,6 +15,7 @@ test("dunningCreate fetches invoice then posts dunning", async () => {
   const result = await dunningCreate(client, {
     precedingSalesVoucherId: "i1",
     finalize: true,
+    voucherDate: "2026-08-16T00:00:00.000Z",
     extraLineItems: [{ name: "fee" }],
   })
   expect(result.success).toBe(true)

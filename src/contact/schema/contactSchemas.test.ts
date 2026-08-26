@@ -53,8 +53,9 @@ test("contact request schemas keep contact cross-field rules", () => {
       roles: { customer: {} },
     }).success,
   ).toBe(true)
-  expect(a.safeParse(contactUpdateBodySchema, { version: 3 }).success).toBe(true)
+  expect(a.safeParse(contactUpdateBodySchema, { version: 3 }).success).toBe(false)
   const partialUpdate = {
+    roles: { customer: {} },
     company: { taxNumber: "123", futureCompanyField: true },
     person: { firstName: "Ada" },
     futureField: { enabled: true },
@@ -64,5 +65,6 @@ test("contact request schemas keep contact cross-field rules", () => {
   if (!partialUpdateResult.success) return
   expect(partialUpdateResult.output).toEqual(partialUpdate)
   expect(a.safeParse(contactUpdateBodySchema, { version: "3" }).success).toBe(false)
+  expect(a.safeParse(contactUpdateBodySchema, { roles: {} }).success).toBe(false)
   expect(a.safeParse(contactUpdateBodySchema, { company: { taxNumber: 123 } }).success).toBe(false)
 })

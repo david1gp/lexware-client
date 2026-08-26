@@ -4,11 +4,9 @@ import * as a from "valibot"
 import { invoiceOptions } from "../cli/invoiceCreateOptions.js"
 import {
   invoiceCreateInputSchema,
+  invoiceDateTimeSchema,
   invoiceLineItemSchema,
-  invoiceListInputSchema,
   invoiceShippingConditionsSchema,
-  invoiceUpdateBodySchema,
-  invoiceUpdateInputSchema,
 } from "./invoiceSchemas.js"
 
 const validInvoice = {
@@ -54,7 +52,7 @@ test("invoice shipping conditions enforce required and ordered dates", () => {
   ).toBe(false)
 })
 
-test("invoice create and update schemas enforce tax conditions", () => {
+test("invoice create schema enforces tax conditions", () => {
   expect(a.safeParse(invoiceCreateInputSchema, { invoice: validInvoice }).success).toBe(true)
   expect(
     a.safeParse(invoiceCreateInputSchema, {
@@ -64,24 +62,19 @@ test("invoice create and update schemas enforce tax conditions", () => {
       },
     }).success,
   ).toBe(false)
-  expect(a.safeParse(invoiceUpdateInputSchema, { id: "invoice-1", invoice: validInvoice }).success).toBe(true)
 })
 
-test("invoice update schema keeps partial update fields optional", () => {
-  const partialInvoice = {
-    title: "Updated title",
-    lineItems: [{ name: "item" }],
-  }
-
-  expect(a.safeParse(invoiceUpdateBodySchema, partialInvoice).success).toBe(true)
-  expect(a.safeParse(invoiceUpdateInputSchema, { id: "invoice-1", invoice: partialInvoice }).success).toBe(true)
-  expect(a.safeParse(invoiceUpdateInputSchema, { id: "invoice-1", invoice: { title: "Updated title" } }).success).toBe(
-    false,
-  )
+test("invoice dates accept the API timestamp format", () => {
+  expect(a.safeParse(invoiceDateTimeSchema, "2026-08-26T10:00:00.000Z").success).toBe(true)
 })
 
-test("invoice list schema remains a small named query schema", () => {
-  expect(a.safeParse(invoiceListInputSchema, { page: 2, status: "open" }).success).toBe(true)
+test("invoice create schema accepts preceding sales voucher ID", () => {
+  expect(
+    a.safeParse(invoiceCreateInputSchema, {
+      invoice: validInvoice,
+      precedingSalesVoucherId: "invoice-1",
+    }).success,
+  ).toBe(true)
 })
 
 test("invoice CLI options coerce through domain leaf schemas", () => {

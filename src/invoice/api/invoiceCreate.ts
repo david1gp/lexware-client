@@ -17,7 +17,10 @@ export async function invoiceCreate(
     op,
     method: "POST",
     path: "/v1/invoices",
-    query: { finalize: r.output.finalize },
+    query: {
+      precedingSalesVoucherId: r.output.precedingSalesVoucherId,
+      finalize: r.output.finalize,
+    },
     body: r.output.invoice,
     schema: lexwareUnknownResponseSchema,
   })

@@ -1,10 +1,11 @@
 import * as a from "valibot"
 import {
   lexwareAddressSchema,
+  lexwareCountryCodeSchema,
   lexwareCurrencySchema,
-  lexwareDateTimeSchema,
   lexwareIdSchema,
   lexwareLineItemTypeSchema,
+  lexwareNonNegativeIntegerSchema,
   lexwareNonNegativeNumberSchema,
   lexwarePercentageSchema,
   lexwareTaxConditionsSchema,
@@ -14,7 +15,7 @@ import {
 
 export const creditNoteAddressSchema = lexwareAddressSchema
 export const creditNoteCurrencySchema = lexwareCurrencySchema
-export const creditNoteDateTimeSchema = lexwareDateTimeSchema
+export const creditNoteDateTimeSchema = a.pipe(a.string(), a.isoTimestamp())
 export const creditNoteLineItemTypeSchema = lexwareLineItemTypeSchema
 export const creditNoteTaxConditionsSchema = lexwareTaxConditionsSchema
 export const creditNoteTotalPriceSchema = lexwareTotalPriceSchema
@@ -52,6 +53,7 @@ const creditNoteVatFreeTaxTypes = new Set([
   "externalService13b",
   "thirdPartyCountryService",
   "thirdPartyCountryDelivery",
+  "photovoltaicEquipment",
 ])
 
 function creditNoteLineItemsMatchTaxConditions(
@@ -93,10 +95,82 @@ export const creditNoteCreateInputSchema = a.object({
   finalize: a.optional(a.boolean()),
 })
 
+const creditNoteResponseAddressSchema = a.looseObject({
+  contactId: a.optional(a.nullable(lexwareIdSchema)),
+  name: a.optional(a.nullable(a.string())),
+  supplement: a.optional(a.nullable(a.string())),
+  street: a.optional(a.nullable(a.string())),
+  city: a.optional(a.nullable(a.string())),
+  zip: a.optional(a.nullable(a.string())),
+  countryCode: a.optional(a.nullable(lexwareCountryCodeSchema)),
+  contactPerson: a.optional(a.nullable(a.string())),
+})
+
+const creditNoteResponseLineItemSchema = a.looseObject({
+  id: a.optional(a.nullable(lexwareIdSchema)),
+  type: creditNoteLineItemTypeSchema,
+  name: a.optional(a.nullable(a.string())),
+  description: a.optional(a.nullable(a.string())),
+  quantity: a.optional(a.nullable(lexwareNonNegativeNumberSchema)),
+  unitName: a.optional(a.nullable(a.string())),
+  unitPrice: a.optional(a.nullable(creditNoteUnitPriceSchema)),
+  lineItemAmount: a.optional(a.nullable(lexwareNonNegativeNumberSchema)),
+})
+
+const creditNoteResponseTotalPriceSchema = a.looseObject({
+  currency: creditNoteCurrencySchema,
+  totalNetAmount: a.optional(a.nullable(lexwareNonNegativeNumberSchema)),
+  totalGrossAmount: a.optional(a.nullable(lexwareNonNegativeNumberSchema)),
+  totalTaxAmount: a.optional(a.nullable(lexwareNonNegativeNumberSchema)),
+  totalDiscountAbsolute: a.optional(a.nullable(lexwareNonNegativeNumberSchema)),
+  totalDiscountPercentage: a.optional(a.nullable(lexwarePercentageSchema)),
+})
+
+const creditNoteResponseTaxAmountSchema = a.looseObject({
+  taxRatePercentage: lexwarePercentageSchema,
+  taxAmount: lexwareNonNegativeNumberSchema,
+  netAmount: lexwareNonNegativeNumberSchema,
+})
+
+const creditNoteResponseRelatedVoucherSchema = a.looseObject({
+  id: lexwareIdSchema,
+  voucherNumber: a.string(),
+  voucherType: a.string(),
+})
+
+const creditNoteResponseVoucherStatusSchema = a.picklist(["draft", "open", "paidoff", "voided"])
+const creditNoteResponseElectronicDocumentProfileSchema = a.picklist(["NONE", "EN16931", "XRechnung"])
+const creditNoteResponseDateTimeSchema = a.pipe(a.string(), a.isoTimestamp())
+
+export const creditNoteResponseSchema = a.looseObject({
+  id: lexwareIdSchema,
+  organizationId: lexwareIdSchema,
+  createdDate: creditNoteResponseDateTimeSchema,
+  updatedDate: creditNoteResponseDateTimeSchema,
+  version: lexwareNonNegativeIntegerSchema,
+  language: a.picklist(["de", "en"]),
+  archived: a.boolean(),
+  voucherStatus: creditNoteResponseVoucherStatusSchema,
+  voucherNumber: a.nullable(a.string()),
+  voucherDate: creditNoteResponseDateTimeSchema,
+  address: creditNoteResponseAddressSchema,
+  electronicDocumentProfile: a.optional(a.nullable(creditNoteResponseElectronicDocumentProfileSchema)),
+  lineItems: a.array(creditNoteResponseLineItemSchema),
+  totalPrice: creditNoteResponseTotalPriceSchema,
+  taxAmounts: a.array(creditNoteResponseTaxAmountSchema),
+  taxConditions: creditNoteTaxConditionsSchema,
+  relatedVouchers: a.optional(a.array(creditNoteResponseRelatedVoucherSchema)),
+  printLayoutId: a.optional(a.nullable(lexwareIdSchema)),
+  title: a.optional(a.nullable(a.string())),
+  introduction: a.optional(a.nullable(a.string())),
+  remark: a.optional(a.nullable(a.string())),
+})
+
 export type CreditNoteAddress = a.InferOutput<typeof creditNoteAddressSchema>
 export type CreditNoteCreateBody = a.InferOutput<typeof creditNoteCreateBodySchema>
 export type CreditNoteCreateInput = a.InferOutput<typeof creditNoteCreateInputSchema>
 export type CreditNoteLineItem = a.InferOutput<typeof creditNoteLineItemSchema>
+export type CreditNoteResponse = a.InferOutput<typeof creditNoteResponseSchema>
 export type CreditNoteTaxConditions = a.InferOutput<typeof creditNoteTaxConditionsSchema>
 export type CreditNoteTotalPrice = a.InferOutput<typeof creditNoteTotalPriceSchema>
 export type CreditNoteUnitPrice = a.InferOutput<typeof creditNoteUnitPriceSchema>

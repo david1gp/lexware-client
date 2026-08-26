@@ -20,14 +20,31 @@ test("contactCompanyCreate posts to contacts", async () => {
 
 test("contactList builds filters", async () => {
   const { client, calls } = lexwareTestClient()
-  await contactList(client, {
-    filter_email: "foo@example.com",
-    filter_customer: true,
-    size: 50,
+  const result = await contactList(client, {
+    page: 0,
+    size: 250,
+    email: "johnson & partner",
+    name: "A_b%",
+    number: 123,
+    customer: false,
+    vendor: true,
   })
+  expect(result.success).toBe(true)
   expect(String(calls[0]?.input)).toBe(
-    "https://api.lexware.io/v1/contacts?size=50&filter_email=foo%40example.com&filter_customer=true",
+    "https://api.lexware.io/v1/contacts?page=0&size=250&email=johnson+%26+partner&name=A_b%25&number=123&customer=false&vendor=true",
   )
+})
+
+test("contactList validates official filter rules", async () => {
+  const { client, calls } = lexwareTestClient()
+  const invalidEmail = await contactList(client, { email: "ab" })
+  const invalidName = await contactList(client, { name: "ab" })
+  const invalidNumber = await contactList(client, { number: 1.5 })
+
+  expect(invalidEmail.success).toBe(false)
+  expect(invalidName.success).toBe(false)
+  expect(invalidNumber.success).toBe(false)
+  expect(calls).toHaveLength(0)
 })
 
 test("contactUpdate validates its body before sending", async () => {
@@ -37,6 +54,7 @@ test("contactUpdate validates its body before sending", async () => {
   expect(calls).toHaveLength(0)
 
   const valid = await contactUpdate(client, "contact-1", {
+    roles: { customer: {} },
     version: 3,
     futureField: { enabled: true },
   })
@@ -44,6 +62,7 @@ test("contactUpdate validates its body before sending", async () => {
   expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/contacts/contact-1")
   expect(calls[0]?.init?.method).toBe("PUT")
   expect(await lexwareRequestBodyJson(calls[0]!)).toEqual({
+    roles: { customer: {} },
     version: 3,
     futureField: { enabled: true },
   })

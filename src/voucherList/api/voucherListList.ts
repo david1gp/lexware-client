@@ -8,11 +8,12 @@ import { type VoucherListListInput, voucherListListInputSchema } from "../schema
 
 export async function voucherListList(
   client: LexwareClient,
-  input: VoucherListListInput = {},
+  input: VoucherListListInput,
 ): PromiseResult<LexwareUnknownResponse> {
   const op = "voucherListList"
   const r = a.safeParse(voucherListListInputSchema, input)
   if (!r.success) return createResultError(op, a.summarize(r.issues), lexwareErrorData(input))
+
   return lexwareRequest(client, {
     op,
     path: "/v1/voucherlist",

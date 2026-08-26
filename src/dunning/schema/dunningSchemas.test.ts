@@ -5,7 +5,7 @@ import { dunningCreateInputSchema, dunningExtraLineItemSchema } from "./dunningS
 test("dunning schemas validate concrete extra line items and preserve extension fields", () => {
   const valid = a.safeParse(dunningCreateInputSchema, {
     precedingSalesVoucherId: "i1",
-    voucherDate: "2025-01-01T00:00",
+    voucherDate: "2025-01-01T00:00:00.000Z",
     extraLineItems: [
       {
         type: "service",
@@ -32,12 +32,14 @@ test("dunning schemas reject invalid top-level and extra line-item values", () =
   expect(
     a.safeParse(dunningCreateInputSchema, {
       precedingSalesVoucherId: "i1",
+      voucherDate: "2025-01-01T00:00:00.000Z",
       extraLineItems: [{ type: "service", name: "Fee", quantity: 1, unitName: "item" }],
     }).success,
   ).toBe(false)
   expect(
     a.safeParse(dunningCreateInputSchema, {
       precedingSalesVoucherId: "i1",
+      voucherDate: "2025-01-01T00:00:00.000Z",
       extraLineItems: [],
     }).success,
   ).toBe(false)

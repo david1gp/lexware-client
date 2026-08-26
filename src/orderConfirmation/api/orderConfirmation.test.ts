@@ -1,21 +1,32 @@
 import { expect, test } from "bun:test"
-import { lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
+import { lexwareRequestBodyJson, lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
 import { orderConfirmationCreate } from "./orderConfirmationCreate.js"
-import { orderConfirmationDelete } from "./orderConfirmationDelete.js"
 import { orderConfirmationPdfDownload } from "./orderConfirmationPdfDownload.js"
 
 test("orderConfirmationCreate posts order confirmation", async () => {
   const { client, calls } = lexwareTestClient()
-  await orderConfirmationCreate(client, { title: "Order" })
+  await orderConfirmationCreate(client, { orderConfirmation: { title: "Order" } })
   expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/order-confirmations")
   expect(calls[0]?.init?.method).toBe("POST")
 })
 
-test("orderConfirmationDelete deletes by id", async () => {
+test("orderConfirmationCreate sends finalize for a new order confirmation", async () => {
   const { client, calls } = lexwareTestClient()
-  await orderConfirmationDelete(client, "o1")
-  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/order-confirmations/o1")
-  expect(calls[0]?.init?.method).toBe("DELETE")
+  await orderConfirmationCreate(client, { finalize: true, orderConfirmation: { title: "Order" } })
+  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/order-confirmations?finalize=true")
+})
+
+test("orderConfirmationCreate sends the preceding sales voucher query", async () => {
+  const { client, calls } = lexwareTestClient()
+  await orderConfirmationCreate(client, {
+    finalize: true,
+    precedingSalesVoucherId: "invoice-id",
+    orderConfirmation: { title: "Order" },
+  })
+  expect(String(calls[0]?.input)).toBe(
+    "https://api.lexware.io/v1/order-confirmations?precedingSalesVoucherId=invoice-id",
+  )
+  expect(await lexwareRequestBodyJson(calls[0]!)).toEqual({ title: "Order" })
 })
 
 function binaryResponse(contentType: string): Response {

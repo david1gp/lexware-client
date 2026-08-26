@@ -1,5 +1,9 @@
 import * as a from "valibot"
-import { lexwareCountryCodeSchema, lexwareIdInputSchema } from "../../shared/lexwareSchemas.js"
+import {
+  lexwareCountryCodeSchema,
+  lexwareIdInputSchema,
+  lexwareNonNegativeIntegerSchema,
+} from "../../shared/lexwareSchemas.js"
 
 const contactRoleEntries = {
   customer: a.optional(a.object({})),
@@ -125,7 +129,7 @@ export const contactPersonBodySchema = a.looseObject({
 
 const contactUpdateBodyEntries = {
   ...contactBodyEntries,
-  roles: a.optional(a.looseObject(contactRoleEntries)),
+  roles: contactRoleSchema,
   company: a.optional(
     a.looseObject({
       ...a.partial(contactCompanySchema).entries,
@@ -153,13 +157,13 @@ export const contactUpdateInputSchema = a.object({
 })
 
 export const contactListInputSchema = a.object({
-  page: a.optional(a.number()),
-  size: a.optional(a.number()),
-  filter_email: a.optional(a.string()),
-  filter_name: a.optional(a.string()),
-  filter_number: a.optional(a.string()),
-  filter_customer: a.optional(a.boolean()),
-  filter_vendor: a.optional(a.boolean()),
+  page: a.optional(lexwareNonNegativeIntegerSchema),
+  size: a.optional(a.pipe(lexwareNonNegativeIntegerSchema, a.minValue(1), a.maxValue(250))),
+  email: a.optional(a.pipe(a.string(), a.minLength(3))),
+  name: a.optional(a.pipe(a.string(), a.minLength(3))),
+  number: a.optional(a.pipe(a.number(), a.integer())),
+  customer: a.optional(a.boolean()),
+  vendor: a.optional(a.boolean()),
 })
 
 export type ContactBody = a.InferOutput<typeof contactBodySchema>

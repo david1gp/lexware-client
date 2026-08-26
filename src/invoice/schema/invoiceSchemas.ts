@@ -4,7 +4,6 @@ import {
   lexwareCurrencySchema,
   lexwareDateTimeSchema,
   lexwareIdSchema,
-  lexwareLineItemSchema,
   lexwareLineItemTypeSchema,
   lexwareNonNegativeIntegerSchema,
   lexwareNonNegativeNumberSchema,
@@ -20,7 +19,7 @@ import {
 
 export const invoiceAddressSchema = lexwareAddressSchema
 export const invoiceCurrencySchema = lexwareCurrencySchema
-export const invoiceDateTimeSchema = lexwareDateTimeSchema
+export const invoiceDateTimeSchema = a.union([lexwareDateTimeSchema, a.pipe(a.string(), a.isoTimestamp())])
 export const invoiceLineItemTypeSchema = lexwareLineItemTypeSchema
 export const invoiceTaxTypeSchema = lexwareTaxTypeSchema
 export const invoiceTaxSubTypeSchema = lexwareTaxSubTypeSchema
@@ -142,60 +141,13 @@ const invoiceRequestBodySchema = a.pipe(
 
 export const invoiceCreateBodySchema = invoiceRequestBodySchema
 
-const invoiceCompatibleLineItemSchema = a.pipe(
-  lexwareLineItemSchema,
-  a.check((item) => {
-    if (item.type === undefined) return true
-    return a.safeParse(invoiceLineItemSchema, item).success
-  }, "line-item fields must match their type"),
-)
-
-export const invoiceUpdateBodySchema = a.pipe(
-  a.looseObject({
-    title: a.optional(a.string()),
-    introduction: a.optional(a.string()),
-    remark: a.optional(a.string()),
-    voucherDate: a.optional(invoiceDateTimeSchema),
-    address: a.optional(invoiceAddressSchema),
-    lineItems: a.array(invoiceCompatibleLineItemSchema),
-    totalPrice: a.optional(invoiceTotalPriceSchema),
-    taxConditions: a.optional(invoiceTaxConditionsSchema),
-    shippingConditions: a.optional(invoiceShippingConditionsSchema),
-    paymentConditions: a.optional(invoicePaymentConditionsSchema),
-    xRechnung: a.optional(a.unknown()),
-    version: a.optional(invoiceVersionSchema),
-  }),
-  a.check((invoice) => {
-    if (invoice.taxConditions === undefined) return true
-    const taxConditions = invoice.taxConditions
-
-    return invoice.lineItems.every((item) => {
-      if (item.type === undefined) return true
-      const parsed = a.safeParse(invoiceLineItemSchema, item)
-      return parsed.success && invoiceLineItemsMatchTaxConditions([parsed.output], taxConditions)
-    })
-  }, "line-item unit prices must match the invoice tax conditions"),
-)
-
-export const invoiceBodySchema = invoiceUpdateBodySchema
-
 export const invoiceCreateInputSchema = a.object({
   invoice: invoiceCreateBodySchema,
+  precedingSalesVoucherId: a.optional(lexwareIdSchema),
   finalize: a.optional(a.boolean()),
 })
 
-export const invoiceUpdateInputSchema = a.object({
-  id: lexwareIdSchema,
-  invoice: invoiceUpdateBodySchema,
-})
-
-export const invoiceListInputSchema = a.object({
-  page: a.optional(a.number()),
-  status: a.optional(a.string()),
-})
-
 export type InvoiceAddress = a.InferOutput<typeof invoiceAddressSchema>
-export type InvoiceBody = a.InferOutput<typeof invoiceBodySchema>
 export type InvoiceCreateBody = a.InferOutput<typeof invoiceCreateBodySchema>
 export type InvoiceCreateInput = a.InferOutput<typeof invoiceCreateInputSchema>
 export type InvoiceLineItem = a.InferOutput<typeof invoiceLineItemSchema>
@@ -205,7 +157,4 @@ export type InvoiceShippingConditions = a.InferOutput<typeof invoiceShippingCond
 export type InvoiceTaxConditions = a.InferOutput<typeof invoiceTaxConditionsSchema>
 export type InvoiceTotalPrice = a.InferOutput<typeof invoiceTotalPriceSchema>
 export type InvoiceUnitPrice = a.InferOutput<typeof invoiceUnitPriceSchema>
-export type InvoiceUpdateBody = a.InferOutput<typeof invoiceUpdateBodySchema>
-export type InvoiceUpdateInput = a.InferOutput<typeof invoiceUpdateInputSchema>
 export type InvoiceXRechnung = a.InferOutput<typeof invoiceXRechnungSchema>
-export type InvoiceListInput = a.InferOutput<typeof invoiceListInputSchema>

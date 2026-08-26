@@ -3,7 +3,6 @@ import {
   lexwareAddressSchema,
   lexwareCurrencySchema,
   lexwareDateTimeSchema,
-  lexwareIdInputSchema,
   lexwareIdSchema,
   lexwareLineItemTypeSchema,
   lexwareNonNegativeNumberSchema,
@@ -24,7 +23,7 @@ export const quotationTaxTypeSchema = a.union([lexwareTaxTypeSchema, a.literal("
 export const quotationTaxSubTypeSchema = lexwareTaxSubTypeSchema
 
 export const quotationAddressSchema = lexwareAddressSchema
-export const quotationDateTimeSchema = lexwareDateTimeSchema
+export const quotationDateTimeSchema = a.union([lexwareDateTimeSchema, a.pipe(a.string(), a.isoTimestamp())])
 export const quotationUnitPriceSchema = lexwareUnitPriceSchema
 export const quotationTotalPriceSchema = lexwareTotalPriceSchema
 export const quotationPaymentConditionsSchema = lexwarePaymentConditionsSchema
@@ -143,54 +142,7 @@ const quotationRequestBodySchema = a.pipe(
 
 export const quotationCreateBodySchema = quotationRequestBodySchema
 export const quotationCreateInputSchema = quotationCreateBodySchema
-
-const quotationUpdateAddressSchema = a.looseObject(a.partial(a.object(quotationAddressSchema.entries)).entries)
-const quotationUpdateSubItemSchema = a.looseObject(a.partial(a.object(quotationSubItemSchema.entries)).entries)
-const quotationUpdateLineItemSchema = a.looseObject({
-  ...a.partial(a.object(quotationLineItemSchema.entries)).entries,
-  subItems: a.optional(a.pipe(a.array(quotationUpdateSubItemSchema), a.maxLength(300))),
-})
-const quotationUpdateTotalPriceSchema = a.looseObject(a.partial(a.object(quotationTotalPriceSchema.entries)).entries)
-const quotationUpdateTaxConditionsSchema = a.looseObject(
-  a.partial(a.object(quotationTaxConditionsSchema.entries)).entries,
-)
-
-export const quotationUpdateBodySchema = a.pipe(
-  a.looseObject({
-    ...a.partial(a.object(quotationCreateBodySchema.entries)).entries,
-    address: a.optional(quotationUpdateAddressSchema),
-    lineItems: a.optional(a.pipe(a.array(quotationUpdateLineItemSchema), a.maxLength(300))),
-    totalPrice: a.optional(quotationUpdateTotalPriceSchema),
-    taxConditions: a.optional(quotationUpdateTaxConditionsSchema),
-  }),
-  a.check((quotation) => {
-    const taxConditions = quotation.taxConditions
-    if (taxConditions === undefined || quotation.lineItems === undefined) return true
-
-    const parsedTaxConditions = a.safeParse(quotationTaxConditionsSchema, taxConditions)
-    if (!parsedTaxConditions.success) return true
-
-    const parsedLineItems: a.InferOutput<typeof quotationLineItemSchema>[] = []
-    for (const item of quotation.lineItems) {
-      const parsed = a.safeParse(quotationLineItemSchema, item)
-      if (!parsed.success) return true
-      parsedLineItems.push(parsed.output)
-    }
-
-    return quotationLineItemsMatchTaxConditions(parsedLineItems, parsedTaxConditions.output)
-  }, "line-item unit prices must match the quotation tax conditions"),
-)
-
-export const quotationBodySchema = quotationUpdateBodySchema
-
-export const quotationUpdateInputSchema = a.object({
-  ...lexwareIdInputSchema.entries,
-  quotation: quotationUpdateBodySchema,
-})
-
-export const quotationListInputSchema = a.object({
-  page: a.optional(a.number()),
-})
+export const quotationBodySchema = quotationCreateBodySchema
 
 export type QuotationBody = a.InferOutput<typeof quotationBodySchema>
 export type QuotationAddress = a.InferOutput<typeof quotationAddressSchema>
@@ -202,5 +154,3 @@ export type QuotationSubItem = a.InferOutput<typeof quotationSubItemSchema>
 export type QuotationTaxConditions = a.InferOutput<typeof quotationTaxConditionsSchema>
 export type QuotationTotalPrice = a.InferOutput<typeof quotationTotalPriceSchema>
 export type QuotationUnitPrice = a.InferOutput<typeof quotationUnitPriceSchema>
-export type QuotationUpdateInput = a.InferOutput<typeof quotationUpdateInputSchema>
-export type QuotationListInput = a.InferOutput<typeof quotationListInputSchema>

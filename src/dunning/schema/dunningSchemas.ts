@@ -1,7 +1,6 @@
 import * as a from "valibot"
 import {
   lexwareCurrencySchema,
-  lexwareDateTimeSchema,
   lexwareIdSchema,
   lexwareLineItemTypeSchema,
   lexwareNonNegativeNumberSchema,
@@ -12,7 +11,7 @@ import {
 export const dunningPrecedingSalesVoucherIdSchema = lexwareIdSchema
 export const dunningFinalizeSchema = a.boolean()
 export const dunningTitleSchema = a.string()
-export const dunningDateTimeSchema = lexwareDateTimeSchema
+export const dunningDateTimeSchema = a.pipe(a.string(), a.isoTimestamp())
 export const dunningVoucherDateSchema = dunningDateTimeSchema
 export const dunningCurrencySchema = lexwareCurrencySchema
 
@@ -61,7 +60,7 @@ export const dunningCreateInputSchema = a.object({
   precedingSalesVoucherId: dunningPrecedingSalesVoucherIdSchema,
   finalize: a.optional(dunningFinalizeSchema),
   title: a.optional(dunningTitleSchema),
-  voucherDate: a.optional(dunningVoucherDateSchema),
+  voucherDate: dunningVoucherDateSchema,
   extraLineItems: a.optional(dunningExtraLineItemsSchema),
   totalNetAmount: a.optional(dunningTotalNetAmountSchema),
   currency: a.optional(dunningCurrencySchema),
