@@ -40,7 +40,7 @@ Align the public library and CLI with every current, non-deprecated Lexware `/v1
 - [x] 10. Remove obsolete CLI commands and tests, then run full unit, type, and build verification.
 - [x] 11. Add an opt-in live E2E suite, exercise every supported endpoint, and fix implementation mismatches found against the live API.
 - [x] 12. Create conventional commits with the commits skill and push.
-- [ ] 13. Release, watch GitHub Actions, and fix release failures.
+- [x] 13. Release, watch GitHub Actions, and fix release failures.
 
 ## Paths
 
