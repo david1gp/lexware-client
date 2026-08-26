@@ -20,15 +20,15 @@ Load CLI environment variables from a default or explicitly selected `.env` file
 - Verify behavior under the supported runtimes and existing quality checks.
 - Commit and push the completed changes, then publish a release and correct GitHub Actions OIDC release failures if encountered.
 
-Current context: implementation, tests, documentation, build, and package verification are complete with no release blockers.
+Current context: implementation, verification, documentation, commits, push, and the `v0.2.0` release are complete; the release workflow and npm OIDC trusted publishing succeeded.
 
 ## Tasks
 
 - [x] Implement environment-file loading and token alias support.
 - [x] Add and run focused and full verification.
 - [x] Update CLI documentation.
-- [ ] Create conventional commits and push.
-- [ ] Publish the release and verify the release workflow.
+- [x] Create conventional commits and push.
+- [x] Publish the release and verify the release workflow.
 
 ## Paths
 
