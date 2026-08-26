@@ -4,7 +4,7 @@ type DunningCreateInputFlags = {
   readonly precedingSalesVoucherId: DunningCreateInput["precedingSalesVoucherId"]
   readonly finalize?: DunningCreateInput["finalize"]
   readonly title?: DunningCreateInput["title"]
-  readonly voucherDate?: DunningCreateInput["voucherDate"]
+  readonly voucherDate: DunningCreateInput["voucherDate"]
   readonly extraLineItemType?: NonNullable<DunningExtraLineItem["type"]>[]
   readonly extraLineItemName?: NonNullable<DunningExtraLineItem["name"]>[]
   readonly extraLineItemDescription?: NonNullable<DunningExtraLineItem["description"]>[]

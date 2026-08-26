@@ -140,7 +140,12 @@ const articleListCommand = buildCommand({
   func(this: CliCommandContext, flags: ArticleListFlags) {
     return cliCommandExecute(this, {
       clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
-      input: { page: flags.page, type: flags.type },
+      input: {
+        page: flags.page,
+        articleNumber: flags.articleNumber,
+        gtin: flags.gtin,
+        type: flags.type,
+      },
       inputSchema: articleListInputSchema,
       execute: articleList,
       op: "articleList",
@@ -154,6 +159,12 @@ const articleListCommand = buildCommand({
         "Page number",
         { optional: true },
       ),
+      articleNumber: cliOptionCreate(a.unwrap(articleListInputSchema.entries.articleNumber), "Article number", {
+        optional: true,
+      }),
+      gtin: cliOptionCreate(a.unwrap(articleListInputSchema.entries.gtin), "Global Trade Item Number", {
+        optional: true,
+      }),
       type: cliOptionCreate(a.unwrap(articleListInputSchema.entries.type), "Article type", { optional: true }),
     },
   },

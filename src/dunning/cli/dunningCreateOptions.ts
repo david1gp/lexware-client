@@ -1,5 +1,7 @@
 import type { FlagParametersForType } from "@stricli/core"
 import * as a from "valibot"
+import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
+import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
 import {
   dunningCurrencySchema,
   dunningExtraLineItemAmountSchema,
@@ -19,8 +21,6 @@ import {
   dunningTotalNetAmountSchema,
   dunningVoucherDateSchema,
 } from "../schema/dunningSchemas.js"
-import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
-import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
 import type { DunningCreateInputFlags } from "./dunningCreateInput.js"
 
 export const dunningCreateOptions = {
@@ -29,9 +29,7 @@ export const dunningCreateOptions = {
     optional: true,
   }),
   title: cliOptionCreate(dunningTitleSchema, "Dunning title", { optional: true }),
-  voucherDate: cliOptionCreate(a.pipe(cliOptionSchemas.dateTime, dunningVoucherDateSchema), "Voucher date", {
-    optional: true,
-  }),
+  voucherDate: cliOptionCreate(a.pipe(a.string(), a.isoTimestamp(), dunningVoucherDateSchema), "Voucher date"),
   extraLineItemType: cliOptionCreate(dunningExtraLineItemTypeSchema, "Extra line-item type", {
     optional: true,
     variadic: true,

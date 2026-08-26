@@ -13,10 +13,11 @@ import type {
 } from "../schema/invoiceSchemas.js"
 
 type InvoiceCreateInputFlags = {
+  readonly precedingSalesVoucherId?: InvoiceCreateInput["precedingSalesVoucherId"]
   readonly title?: InvoiceCreateBody["title"]
   readonly introduction?: InvoiceCreateBody["introduction"]
   readonly remark?: InvoiceCreateBody["remark"]
-  readonly voucherDate?: InvoiceCreateBody["voucherDate"]
+  readonly voucherDate: InvoiceCreateBody["voucherDate"]
   readonly addressContactId?: InvoiceAddress["contactId"]
   readonly addressName?: InvoiceAddress["name"]
   readonly addressSupplement?: InvoiceAddress["supplement"]
@@ -213,6 +214,7 @@ function invoiceBodyInputFromFlags(flags: InvoiceCreateInputFlags): unknown {
 function invoiceCreateInputFromFlags(flags: InvoiceCreateInputFlags): unknown {
   return {
     invoice: invoiceBodyInputFromFlags(flags),
+    precedingSalesVoucherId: flags.precedingSalesVoucherId,
     finalize: flags.finalize,
   }
 }

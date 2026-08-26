@@ -8,7 +8,6 @@ import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
 import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
 import { lexwareIdInputSchema } from "../../shared/lexwareSchemas.js"
 import { contactCompanyCreate } from "../api/contactCompanyCreate.js"
-import { contactDelete } from "../api/contactDelete.js"
 import { contactGet } from "../api/contactGet.js"
 import { contactList } from "../api/contactList.js"
 import { contactPersonCreate } from "../api/contactPersonCreate.js"
@@ -476,11 +475,11 @@ const contactUpdateCommand = buildCommand({
 type ContactListFlags = CliClientInput & {
   readonly page?: a.InferOutput<typeof contactListInputSchema.entries.page>
   readonly size?: a.InferOutput<typeof contactListInputSchema.entries.size>
-  readonly filterEmail?: a.InferOutput<typeof contactListInputSchema.entries.filter_email>
-  readonly filterName?: a.InferOutput<typeof contactListInputSchema.entries.filter_name>
-  readonly filterNumber?: a.InferOutput<typeof contactListInputSchema.entries.filter_number>
-  readonly filterCustomer?: a.InferOutput<typeof contactListInputSchema.entries.filter_customer>
-  readonly filterVendor?: a.InferOutput<typeof contactListInputSchema.entries.filter_vendor>
+  readonly email?: a.InferOutput<typeof contactListInputSchema.entries.email>
+  readonly name?: a.InferOutput<typeof contactListInputSchema.entries.name>
+  readonly number?: a.InferOutput<typeof contactListInputSchema.entries.number>
+  readonly customer?: a.InferOutput<typeof contactListInputSchema.entries.customer>
+  readonly vendor?: a.InferOutput<typeof contactListInputSchema.entries.vendor>
 }
 
 type ContactIdFlags = CliClientInput & a.InferOutput<typeof lexwareIdInputSchema>
@@ -492,11 +491,11 @@ const contactListCommand = buildCommand({
       input: {
         page: flags.page,
         size: flags.size,
-        filter_email: flags.filterEmail,
-        filter_name: flags.filterName,
-        filter_number: flags.filterNumber,
-        filter_customer: flags.filterCustomer,
-        filter_vendor: flags.filterVendor,
+        email: flags.email,
+        name: flags.name,
+        number: flags.number,
+        customer: flags.customer,
+        vendor: flags.vendor,
       },
       inputSchema: contactListInputSchema,
       execute: contactList,
@@ -516,24 +515,24 @@ const contactListCommand = buildCommand({
         "Page size",
         { optional: true },
       ),
-      filterEmail: cliOptionCreate(a.unwrap(contactListInputSchema.entries.filter_email), "Filter by email", {
+      email: cliOptionCreate(a.unwrap(contactListInputSchema.entries.email), "Filter by email", {
         optional: true,
       }),
-      filterName: cliOptionCreate(a.unwrap(contactListInputSchema.entries.filter_name), "Filter by name", {
+      name: cliOptionCreate(a.unwrap(contactListInputSchema.entries.name), "Filter by name", {
         optional: true,
       }),
-      filterNumber: cliOptionCreate(
-        a.unwrap(contactListInputSchema.entries.filter_number),
+      number: cliOptionCreate(
+        a.pipe(cliOptionSchemas.integer, a.unwrap(contactListInputSchema.entries.number)),
         "Filter by contact number",
         { optional: true },
       ),
-      filterCustomer: cliOptionCreate(
-        a.pipe(cliOptionSchemas.boolean, a.unwrap(contactListInputSchema.entries.filter_customer)),
+      customer: cliOptionCreate(
+        a.pipe(cliOptionSchemas.boolean, a.unwrap(contactListInputSchema.entries.customer)),
         "Filter customer contacts",
         { optional: true },
       ),
-      filterVendor: cliOptionCreate(
-        a.pipe(cliOptionSchemas.boolean, a.unwrap(contactListInputSchema.entries.filter_vendor)),
+      vendor: cliOptionCreate(
+        a.pipe(cliOptionSchemas.boolean, a.unwrap(contactListInputSchema.entries.vendor)),
         "Filter vendor contacts",
         { optional: true },
       ),
@@ -565,27 +564,6 @@ const contactGetCommand = buildCommand({
   },
 })
 
-const contactDeleteCommand = buildCommand({
-  func(this: CliCommandContext, flags: ContactIdFlags) {
-    return cliCommandExecute(this, {
-      clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
-      input: { id: flags.id },
-      inputSchema: lexwareIdInputSchema,
-      execute: (client, input) => contactDelete(client, input.id),
-      op: "contactDelete",
-    })
-  },
-  parameters: {
-    flags: {
-      ...cliClientOptions,
-      id: cliOptionCreate(lexwareIdInputSchema.entries.id, "Contact ID"),
-    },
-  },
-  docs: {
-    brief: "Delete a contact",
-  },
-})
-
 export const contactCommand = buildRouteMap({
   routes: {
     companyCreate: contactCompanyCreateCommand,
@@ -593,7 +571,6 @@ export const contactCommand = buildRouteMap({
     update: contactUpdateCommand,
     list: contactListCommand,
     get: contactGetCommand,
-    delete: contactDeleteCommand,
   },
   docs: {
     brief: "Contact commands",

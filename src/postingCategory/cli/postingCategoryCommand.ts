@@ -4,19 +4,19 @@ import type { CliClientInput } from "../../cli/cliClientCreate.js"
 import { cliClientOptions } from "../../cli/cliClientOptions.js"
 import type { CliCommandContext } from "../../cli/cliCommandContext.js"
 import { cliCommandExecute } from "../../cli/cliCommandExecute.js"
-import { countryList } from "../api/countryList.js"
+import { postingCategoryList } from "../api/postingCategoryList.js"
 
-const countryListInputSchema = a.object({})
-type CountryListFlags = CliClientInput
+const postingCategoryListInputSchema = a.object({})
+type PostingCategoryListFlags = CliClientInput
 
-const countryListCommand = buildCommand({
-  func(this: CliCommandContext, flags: CountryListFlags) {
+const postingCategoryListCommand = buildCommand({
+  func(this: CliCommandContext, flags: PostingCategoryListFlags) {
     return cliCommandExecute(this, {
       clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
       input: {},
-      inputSchema: countryListInputSchema,
-      execute: (client) => countryList(client),
-      op: "countryList",
+      inputSchema: postingCategoryListInputSchema,
+      execute: (client) => postingCategoryList(client),
+      op: "postingCategoryList",
     })
   },
   parameters: {
@@ -25,15 +25,15 @@ const countryListCommand = buildCommand({
     },
   },
   docs: {
-    brief: "List countries",
+    brief: "List posting categories",
   },
 })
 
-export const countryCommand = buildRouteMap({
+export const postingCategoryCommand = buildRouteMap({
   routes: {
-    list: countryListCommand,
+    list: postingCategoryListCommand,
   },
   docs: {
-    brief: "Country commands",
+    brief: "Posting category commands",
   },
 })

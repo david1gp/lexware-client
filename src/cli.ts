@@ -11,13 +11,22 @@ import { cliResultWrite } from "./cli/cliResultWrite.js"
 import { cliRun } from "./cli/cliRun.js"
 import { contactCommand } from "./contact/cli/contactCommand.js"
 import { countryCommand } from "./country/cli/countryCommand.js"
+import { creditNoteCommand } from "./creditNote/cli/creditNoteCommand.js"
+import { deliveryNoteCommand } from "./deliveryNote/cli/deliveryNoteCommand.js"
+import { downPaymentInvoiceCommand } from "./downPaymentInvoice/cli/downPaymentInvoiceCommand.js"
 import { dunningCommand } from "./dunning/cli/dunningCommand.js"
+import { eventSubscriptionCommand } from "./eventSubscription/cli/eventSubscriptionCommand.js"
 import { fileCommand } from "./file/cli/fileCommand.js"
 import { invoiceCommand } from "./invoice/cli/invoiceCommand.js"
 import { orderConfirmationCommand } from "./orderConfirmation/cli/orderConfirmationCommand.js"
 import { packageVersion } from "./packageVersion.js"
+import { paymentCommand } from "./payment/cli/paymentCommand.js"
+import { paymentConditionCommand } from "./paymentCondition/cli/paymentConditionCommand.js"
+import { postingCategoryCommand } from "./postingCategory/cli/postingCategoryCommand.js"
 import { printLayoutCommand } from "./printLayout/cli/printLayoutCommand.js"
+import { profileCommand } from "./profile/cli/profileCommand.js"
 import { quotationCommand } from "./quotation/cli/quotationCommand.js"
+import { recurringTemplateCommand } from "./recurringTemplate/cli/recurringTemplateCommand.js"
 import { voucherCommand } from "./voucher/cli/voucherCommand.js"
 import { voucherListCommand } from "./voucherList/cli/voucherListCommand.js"
 
@@ -64,12 +73,21 @@ const lexwareRouteMap = buildRouteMap({
     article: articleCommand,
     contact: contactCommand,
     country: countryCommand,
+    creditNote: creditNoteCommand,
+    deliveryNote: deliveryNoteCommand,
+    downPaymentInvoice: downPaymentInvoiceCommand,
     dunning: dunningCommand,
+    eventSubscription: eventSubscriptionCommand,
     file: fileCommand,
     invoice: invoiceCommand,
     orderConfirmation: orderConfirmationCommand,
+    payments: paymentCommand,
+    paymentConditions: paymentConditionCommand,
+    postingCategories: postingCategoryCommand,
+    profile: profileCommand,
     printLayout: printLayoutCommand,
     quotation: quotationCommand,
+    recurringTemplate: recurringTemplateCommand,
     voucher: voucherCommand,
     voucherList: voucherListCommand,
   },

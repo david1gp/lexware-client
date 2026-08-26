@@ -31,10 +31,8 @@ const quotationOptions = {
       optional: true,
     },
   ),
-  voucherDate: cliOptionCreate(quotationCreateBodySchema.entries.voucherDate, "Voucher date", { optional: true }),
-  expirationDate: cliOptionCreate(quotationCreateBodySchema.entries.expirationDate, "Quotation expiration date", {
-    optional: true,
-  }),
+  voucherDate: cliOptionCreate(quotationCreateBodySchema.entries.voucherDate, "Voucher date"),
+  expirationDate: cliOptionCreate(quotationCreateBodySchema.entries.expirationDate, "Quotation expiration date"),
   addressContactId: cliOptionCreate(a.unwrap(quotationAddressSchema.entries.contactId), "Address contact ID", {
     optional: true,
   }),

@@ -5,27 +5,21 @@ import { cliClientOptions } from "../../cli/cliClientOptions.js"
 import type { CliCommandContext } from "../../cli/cliCommandContext.js"
 import { cliCommandExecute } from "../../cli/cliCommandExecute.js"
 import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
-import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
 import { lexwareIdInputSchema } from "../../shared/lexwareSchemas.js"
+import { salesVoucherDownloadOptions } from "../../shared/salesVoucherDownloadOptions.js"
+import { salesVoucherDownloadWrite } from "../../shared/salesVoucherDownloadWrite.js"
 import { invoiceCreate } from "../api/invoiceCreate.js"
 import { invoiceGet } from "../api/invoiceGet.js"
-import { invoiceList } from "../api/invoiceList.js"
-import { invoiceUpdate } from "../api/invoiceUpdate.js"
-import {
-  type InvoiceListInput,
-  invoiceCreateInputSchema,
-  invoiceListInputSchema,
-  invoiceUpdateInputSchema,
-} from "../schema/invoiceSchemas.js"
+import { invoicePdfDownload } from "../api/invoicePdfDownload.js"
+import { invoiceXmlDownload } from "../api/invoiceXmlDownload.js"
+import { invoiceCreateInputSchema } from "../schema/invoiceSchemas.js"
 import type { InvoiceCreateInputFlags } from "./invoiceCreateInput.js"
-import { invoiceBodyInputFromFlags, invoiceCreateInputFromFlags } from "./invoiceCreateInput.js"
-import { invoiceCreateOptions, invoiceOptions } from "./invoiceCreateOptions.js"
-
-type InvoiceListFlags = CliClientInput & InvoiceListInput
+import { invoiceCreateInputFromFlags } from "./invoiceCreateInput.js"
+import { invoiceCreateOptions } from "./invoiceCreateOptions.js"
 
 type InvoiceIdFlags = CliClientInput & { readonly id: string }
 type InvoiceCreateFlags = CliClientInput & InvoiceCreateInputFlags
-type InvoiceUpdateFlags = CliClientInput & Omit<InvoiceCreateInputFlags, "finalize"> & InvoiceIdFlags
+type InvoiceDownloadFlags = InvoiceIdFlags & { readonly output?: string }
 
 const invoiceCreateCommand = buildCommand({
   func(this: CliCommandContext, flags: InvoiceCreateFlags) {
@@ -50,56 +44,6 @@ const invoiceCreateCommand = buildCommand({
   },
 })
 
-const invoiceUpdateCommand = buildCommand({
-  func(this: CliCommandContext, flags: InvoiceUpdateFlags) {
-    const { accessToken, baseUrl, ...inputFlags } = flags
-
-    return cliCommandExecute(this, {
-      clientInput: { accessToken, baseUrl },
-      input: { id: inputFlags.id, invoice: invoiceBodyInputFromFlags(inputFlags) },
-      inputSchema: invoiceUpdateInputSchema,
-      execute: (client, input) => invoiceUpdate(client, input.id, input.invoice),
-      op: "invoiceUpdate",
-    })
-  },
-  parameters: {
-    flags: {
-      ...cliClientOptions,
-      id: cliOptionCreate(lexwareIdInputSchema.entries.id, "Invoice ID"),
-      ...invoiceOptions,
-    },
-  },
-  docs: {
-    brief: "Update an invoice",
-  },
-})
-
-const invoiceListCommand = buildCommand({
-  func(this: CliCommandContext, flags: InvoiceListFlags) {
-    return cliCommandExecute(this, {
-      clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
-      input: { page: flags.page, status: flags.status },
-      inputSchema: invoiceListInputSchema,
-      execute: invoiceList,
-      op: "invoiceList",
-    })
-  },
-  parameters: {
-    flags: {
-      ...cliClientOptions,
-      page: cliOptionCreate(
-        a.pipe(cliOptionSchemas.integer, a.unwrap(invoiceListInputSchema.entries.page)),
-        "Page number",
-        { optional: true },
-      ),
-      status: cliOptionCreate(a.unwrap(invoiceListInputSchema.entries.status), "Invoice status", { optional: true }),
-    },
-  },
-  docs: {
-    brief: "List invoices",
-  },
-})
-
 const invoiceGetCommand = buildCommand({
   func(this: CliCommandContext, flags: InvoiceIdFlags) {
     return cliCommandExecute(this, {
@@ -121,12 +65,32 @@ const invoiceGetCommand = buildCommand({
   },
 })
 
+function invoiceDownloadCommand(
+  download: typeof invoicePdfDownload | typeof invoiceXmlDownload,
+  op: "invoicePdfDownload" | "invoiceXmlDownload",
+  brief: string,
+) {
+  return buildCommand({
+    func(this: CliCommandContext, flags: InvoiceDownloadFlags) {
+      return cliCommandExecute(this, {
+        clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
+        input: { id: flags.id, output: flags.output },
+        inputSchema: a.intersect([lexwareIdInputSchema, a.object({ output: a.optional(a.string()) })]),
+        execute: (client, input) => salesVoucherDownloadWrite(client, input.id, input.output, download),
+        op,
+      })
+    },
+    parameters: { flags: { ...cliClientOptions, ...salesVoucherDownloadOptions } },
+    docs: { brief },
+  })
+}
+
 export const invoiceCommand = buildRouteMap({
   routes: {
     create: invoiceCreateCommand,
-    update: invoiceUpdateCommand,
-    list: invoiceListCommand,
     get: invoiceGetCommand,
+    "pdf-download": invoiceDownloadCommand(invoicePdfDownload, "invoicePdfDownload", "Download an invoice PDF"),
+    "xml-download": invoiceDownloadCommand(invoiceXmlDownload, "invoiceXmlDownload", "Download an invoice XML"),
   },
   docs: {
     brief: "Invoice commands",

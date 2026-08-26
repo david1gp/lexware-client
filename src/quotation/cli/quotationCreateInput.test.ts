@@ -39,6 +39,8 @@ test("quotation flags reject mismatched variadic cardinality before assembly", (
   const result = a.safeParse(
     quotationCreateInputSchema,
     quotationBodyInputFromFlags({
+      voucherDate: "2026-01-01T00:00",
+      expirationDate: "2026-01-31T00:00",
       lineItemType: ["text"],
       lineItemName: ["Note", "Extra"],
     }),

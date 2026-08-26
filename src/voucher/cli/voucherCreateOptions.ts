@@ -3,90 +3,78 @@ import * as a from "valibot"
 import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
 import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
 import {
-  voucherAddressSchema,
-  voucherBodySchema,
-  voucherLineItemSchema,
-  voucherUnitPriceSchema,
-} from "../schema/voucherSchemas.js"
+  lexwareIdSchema,
+  lexwareNonNegativeNumberSchema,
+  lexwarePercentageSchema,
+} from "../../shared/lexwareSchemas.js"
+import { voucherBodySchema, voucherItemSchema } from "../schema/voucherSchemas.js"
 import type { VoucherCreateInputFlags } from "./voucherCreateInput.js"
 
+type VoucherUpdateInputFlags = VoucherCreateInputFlags & {
+  readonly fileId?: string[]
+  readonly version: NonNullable<VoucherCreateInputFlags["version"]>
+}
+
 const voucherOptions = {
-  title: cliOptionCreate(a.unwrap(voucherBodySchema.entries.title), "Voucher title", { optional: true }),
-  voucherDate: cliOptionCreate(
-    a.pipe(cliOptionSchemas.dateTime, a.unwrap(voucherBodySchema.entries.voucherDate)),
-    "Voucher date",
-    { optional: true },
+  type: cliOptionCreate(voucherBodySchema.entries.type, "Voucher type"),
+  voucherStatus: cliOptionCreate(a.unwrap(voucherBodySchema.entries.voucherStatus), "Voucher status", {
+    optional: true,
+  }),
+  voucherNumber: cliOptionCreate(a.unwrap(voucherBodySchema.entries.voucherNumber), "Voucher number", {
+    optional: true,
+  }),
+  voucherDate: cliOptionCreate(cliOptionSchemas.date, "Voucher date", { optional: true }),
+  shippingDate: cliOptionCreate(cliOptionSchemas.date, "Shipping date", { optional: true }),
+  dueDate: cliOptionCreate(cliOptionSchemas.date, "Due date", { optional: true }),
+  totalGrossAmount: cliOptionCreate(cliOptionSchemas.number, "Total gross amount", { optional: true }),
+  totalTaxAmount: cliOptionCreate(cliOptionSchemas.number, "Total tax amount", { optional: true }),
+  taxType: cliOptionCreate(voucherBodySchema.entries.taxType, "Tax type"),
+  useCollectiveContact: cliOptionCreate(
+    a.pipe(cliOptionSchemas.boolean, voucherBodySchema.entries.useCollectiveContact),
+    "Use collective contact",
   ),
-  addressContactId: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.contactId), "Address contact ID", {
-    optional: true,
-  }),
-  addressName: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.name), "Address name", { optional: true }),
-  addressSupplement: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.supplement), "Address supplement", {
-    optional: true,
-  }),
-  addressStreet: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.street), "Address street", {
-    optional: true,
-  }),
-  addressCity: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.city), "Address city", { optional: true }),
-  addressZip: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.zip), "Address ZIP code", { optional: true }),
-  addressCountryCode: cliOptionCreate(a.unwrap(voucherAddressSchema.entries.countryCode), "Address country code", {
-    optional: true,
-  }),
-  lineItemType: cliOptionCreate(a.unwrap(voucherLineItemSchema.entries.type), "Line-item type", {
-    optional: true,
-    variadic: true,
-  }),
-  lineItemName: cliOptionCreate(a.unwrap(voucherLineItemSchema.entries.name), "Line-item name", {
-    optional: true,
-    variadic: true,
-  }),
-  lineItemDescription: cliOptionCreate(a.unwrap(voucherLineItemSchema.entries.description), "Line-item description", {
-    optional: true,
-    variadic: true,
-  }),
-  lineItemQuantity: cliOptionCreate(
-    a.pipe(cliOptionSchemas.number, a.unwrap(voucherLineItemSchema.entries.quantity)),
-    "Line-item quantity",
+  contactName: cliOptionCreate(a.unwrap(voucherBodySchema.entries.contactName), "Contact name", { optional: true }),
+  contactId: cliOptionCreate(lexwareIdSchema, "Contact ID", { optional: true }),
+  remark: cliOptionCreate(a.unwrap(voucherBodySchema.entries.remark), "Voucher remark", { optional: true }),
+  voucherItemAmount: cliOptionCreate(
+    a.pipe(cliOptionSchemas.number, lexwareNonNegativeNumberSchema),
+    "Voucher-item amount",
     {
       optional: true,
       variadic: true,
     },
   ),
-  lineItemUnitName: cliOptionCreate(a.unwrap(voucherLineItemSchema.entries.unitName), "Line-item unit name", {
+  voucherItemTaxAmount: cliOptionCreate(
+    a.pipe(cliOptionSchemas.number, lexwareNonNegativeNumberSchema),
+    "Voucher-item tax amount",
+    {
+      optional: true,
+      variadic: true,
+    },
+  ),
+  voucherItemTaxRatePercent: cliOptionCreate(
+    a.pipe(cliOptionSchemas.number, lexwarePercentageSchema),
+    "Voucher-item tax rate",
+    {
+      optional: true,
+      variadic: true,
+    },
+  ),
+  voucherItemCategoryId: cliOptionCreate(voucherItemSchema.entries.categoryId, "Voucher-item category ID", {
     optional: true,
     variadic: true,
   }),
-  lineItemUnitPriceCurrency: cliOptionCreate(voucherUnitPriceSchema.entries.currency, "Line-item unit-price currency", {
-    optional: true,
-    variadic: true,
-  }),
-  lineItemUnitPriceNetAmount: cliOptionCreate(
-    a.pipe(cliOptionSchemas.number, a.unwrap(voucherUnitPriceSchema.entries.netAmount)),
-    "Line-item unit-price net amount",
-    { optional: true, variadic: true },
-  ),
-  lineItemUnitPriceGrossAmount: cliOptionCreate(
-    a.pipe(cliOptionSchemas.number, a.unwrap(voucherUnitPriceSchema.entries.grossAmount)),
-    "Line-item unit-price gross amount",
-    { optional: true, variadic: true },
-  ),
-  lineItemUnitPriceTaxRatePercentage: cliOptionCreate(
-    a.pipe(cliOptionSchemas.number, voucherUnitPriceSchema.entries.taxRatePercentage),
-    "Line-item unit-price tax rate",
-    { optional: true, variadic: true },
-  ),
-  lineItemDiscountPercentage: cliOptionCreate(
-    a.pipe(cliOptionSchemas.number, a.unwrap(voucherLineItemSchema.entries.discountPercentage)),
-    "Line-item discount percentage",
-    { optional: true, variadic: true },
-  ),
-  lineItemAmount: cliOptionCreate(
-    a.pipe(cliOptionSchemas.number, a.unwrap(voucherLineItemSchema.entries.lineItemAmount)),
-    "Line-item amount",
-    { optional: true, variadic: true },
-  ),
+  version: cliOptionCreate(cliOptionSchemas.integer, "Voucher version", { optional: true }),
 } satisfies FlagParametersForType<VoucherCreateInputFlags>
 
 const voucherCreateOptions = voucherOptions
+const voucherUpdateOptions = {
+  ...voucherOptions,
+  fileId: cliOptionCreate(lexwareIdSchema, "Existing voucher file ID to retain", {
+    optional: true,
+    variadic: true,
+  }),
+  version: cliOptionCreate(cliOptionSchemas.integer, "Voucher version"),
+} satisfies FlagParametersForType<VoucherUpdateInputFlags>
 
-export { voucherCreateOptions, voucherOptions }
+export { voucherCreateOptions, voucherUpdateOptions }

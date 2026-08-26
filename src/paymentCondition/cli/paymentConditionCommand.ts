@@ -4,19 +4,19 @@ import type { CliClientInput } from "../../cli/cliClientCreate.js"
 import { cliClientOptions } from "../../cli/cliClientOptions.js"
 import type { CliCommandContext } from "../../cli/cliCommandContext.js"
 import { cliCommandExecute } from "../../cli/cliCommandExecute.js"
-import { countryList } from "../api/countryList.js"
+import { paymentConditionList } from "../api/paymentConditionList.js"
 
-const countryListInputSchema = a.object({})
-type CountryListFlags = CliClientInput
+const paymentConditionListInputSchema = a.object({})
+type PaymentConditionListFlags = CliClientInput
 
-const countryListCommand = buildCommand({
-  func(this: CliCommandContext, flags: CountryListFlags) {
+const paymentConditionListCommand = buildCommand({
+  func(this: CliCommandContext, flags: PaymentConditionListFlags) {
     return cliCommandExecute(this, {
       clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
       input: {},
-      inputSchema: countryListInputSchema,
-      execute: (client) => countryList(client),
-      op: "countryList",
+      inputSchema: paymentConditionListInputSchema,
+      execute: (client) => paymentConditionList(client),
+      op: "paymentConditionList",
     })
   },
   parameters: {
@@ -25,15 +25,15 @@ const countryListCommand = buildCommand({
     },
   },
   docs: {
-    brief: "List countries",
+    brief: "List payment conditions",
   },
 })
 
-export const countryCommand = buildRouteMap({
+export const paymentConditionCommand = buildRouteMap({
   routes: {
-    list: countryListCommand,
+    list: paymentConditionListCommand,
   },
   docs: {
-    brief: "Country commands",
+    brief: "Payment condition commands",
   },
 })

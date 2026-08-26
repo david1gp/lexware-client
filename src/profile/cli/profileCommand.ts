@@ -4,19 +4,19 @@ import type { CliClientInput } from "../../cli/cliClientCreate.js"
 import { cliClientOptions } from "../../cli/cliClientOptions.js"
 import type { CliCommandContext } from "../../cli/cliCommandContext.js"
 import { cliCommandExecute } from "../../cli/cliCommandExecute.js"
-import { countryList } from "../api/countryList.js"
+import { profileGet } from "../api/profileGet.js"
 
-const countryListInputSchema = a.object({})
-type CountryListFlags = CliClientInput
+const profileGetInputSchema = a.object({})
+type ProfileGetFlags = CliClientInput
 
-const countryListCommand = buildCommand({
-  func(this: CliCommandContext, flags: CountryListFlags) {
+const profileGetCommand = buildCommand({
+  func(this: CliCommandContext, flags: ProfileGetFlags) {
     return cliCommandExecute(this, {
       clientInput: { accessToken: flags.accessToken, baseUrl: flags.baseUrl },
       input: {},
-      inputSchema: countryListInputSchema,
-      execute: (client) => countryList(client),
-      op: "countryList",
+      inputSchema: profileGetInputSchema,
+      execute: (client) => profileGet(client),
+      op: "profileGet",
     })
   },
   parameters: {
@@ -25,15 +25,15 @@ const countryListCommand = buildCommand({
     },
   },
   docs: {
-    brief: "List countries",
+    brief: "Get the profile",
   },
 })
 
-export const countryCommand = buildRouteMap({
+export const profileCommand = buildRouteMap({
   routes: {
-    list: countryListCommand,
+    get: profileGetCommand,
   },
   docs: {
-    brief: "Country commands",
+    brief: "Profile commands",
   },
 })

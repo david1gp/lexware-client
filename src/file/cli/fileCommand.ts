@@ -2,20 +2,20 @@ import { readFile, writeFile } from "node:fs/promises"
 import { buildCommand, buildRouteMap } from "@stricli/core"
 import * as a from "valibot"
 import { createResult, createResultError } from "#result"
-import { fileDownload } from "../api/fileDownload.js"
-import {
-  fileContentTypeSchema,
-  fileDownloadInputSchema,
-  fileFilenameSchema,
-  fileTypeSchema,
-} from "../schema/fileSchemas.js"
-import { fileUpload } from "../api/fileUpload.js"
 import type { CliClientInput } from "../../cli/cliClientCreate.js"
 import { cliClientOptions } from "../../cli/cliClientOptions.js"
 import type { CliCommandContext } from "../../cli/cliCommandContext.js"
 import { cliCommandExecute } from "../../cli/cliCommandExecute.js"
 import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
 import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
+import { fileDownload } from "../api/fileDownload.js"
+import { fileUpload } from "../api/fileUpload.js"
+import {
+  fileContentTypeSchema,
+  fileDownloadInputSchema,
+  fileFilenameSchema,
+  fileTypeSchema,
+} from "../schema/fileSchemas.js"
 
 const filePathSchema = cliOptionSchemas.nonEmptyString
 const fileOutputSchema = cliOptionSchemas.nonEmptyString

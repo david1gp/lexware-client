@@ -2,6 +2,7 @@ import type { FlagParametersForType } from "@stricli/core"
 import * as a from "valibot"
 import { cliOptionCreate } from "../../cli/cliOptionCreate.js"
 import { cliOptionSchemas } from "../../cli/cliOptionSchemas.js"
+import { lexwareIdSchema } from "../../shared/lexwareSchemas.js"
 import {
   invoiceAddressSchema,
   invoiceCreateBodySchema,
@@ -24,7 +25,7 @@ export const invoiceOptions = {
     optional: true,
   }),
   remark: cliOptionCreate(a.unwrap(invoiceCreateBodySchema.entries.remark), "Invoice remark", { optional: true }),
-  voucherDate: cliOptionCreate(invoiceCreateBodySchema.entries.voucherDate, "Voucher date", { optional: true }),
+  voucherDate: cliOptionCreate(invoiceCreateBodySchema.entries.voucherDate, "Voucher date"),
   addressContactId: cliOptionCreate(a.unwrap(invoiceAddressSchema.entries.contactId), "Address contact ID", {
     optional: true,
   }),
@@ -172,11 +173,16 @@ export const invoiceOptions = {
     "Invoice version",
     { optional: true },
   ),
-} satisfies FlagParametersForType<Omit<InvoiceCreateInputFlags, "finalize">>
+} satisfies FlagParametersForType<Omit<InvoiceCreateInputFlags, "finalize" | "precedingSalesVoucherId">>
 
 export const invoiceCreateOptions = {
   ...invoiceOptions,
-  finalize: cliOptionCreate(a.unwrap(invoiceCreateInputSchema.entries.finalize), "Finalize invoice", {
-    optional: true,
-  }),
+  precedingSalesVoucherId: cliOptionCreate(lexwareIdSchema, "Preceding sales voucher ID", { optional: true }),
+  finalize: cliOptionCreate(
+    a.pipe(cliOptionSchemas.boolean, a.unwrap(invoiceCreateInputSchema.entries.finalize)),
+    "Finalize invoice",
+    {
+      optional: true,
+    },
+  ),
 } satisfies FlagParametersForType<InvoiceCreateInputFlags>
