@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { lexwareRequestBinary } from "../../shared/lexwareRequest.js"
 import { lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
 import { fileDownload } from "./fileDownload.js"
 import { fileUpload } from "./fileUpload.js"
@@ -27,4 +28,20 @@ test("fileDownload returns filename from content disposition", async () => {
   const result = await fileDownload(client, "f1")
   expect(result.success).toBe(true)
   if (result.success) expect(result.data.filename).toBe("rechnung.pdf")
+})
+
+test("lexwareRequestBinary uses wildcard accept by default", async () => {
+  const { client, calls } = lexwareTestClient()
+  await lexwareRequestBinary(client, { binary: true, path: "/v1/files/f1" })
+  expect(new Headers(calls[0]?.init?.headers).get("Accept")).toBe("*/*")
+})
+
+test("lexwareRequestBinary preserves explicit accept override", async () => {
+  const { client, calls } = lexwareTestClient()
+  await lexwareRequestBinary(client, {
+    binary: true,
+    path: "/v1/files/f1",
+    headers: { Accept: "application/pdf" },
+  })
+  expect(new Headers(calls[0]?.init?.headers).get("Accept")).toBe("application/pdf")
 })

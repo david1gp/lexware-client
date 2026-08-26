@@ -75,7 +75,7 @@ export async function lexwareRequestBinary(
   lexwareQueryAppend(url, input.query)
 
   const headers = new Headers(input.headers)
-  headers.set("Accept", headers.get("Accept") ?? "application/octet-stream")
+  headers.set("Accept", headers.get("Accept") ?? "*/*")
   headers.set("Authorization", `Bearer ${client.accessToken}`)
 
   let response: Response

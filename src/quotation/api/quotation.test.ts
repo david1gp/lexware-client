@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { lexwareRequestBodyJson, lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
 import { quotationCreate } from "./quotationCreate.js"
 import { quotationDelete } from "./quotationDelete.js"
+import { quotationFileDownload } from "./quotationFileDownload.js"
 import { quotationList } from "./quotationList.js"
 import { quotationUpdate } from "./quotationUpdate.js"
 
@@ -16,6 +17,14 @@ test("quotationDelete deletes quotation", async () => {
   await quotationDelete(client, "q1")
   expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/quotations/q1")
   expect(calls[0]?.init?.method).toBe("DELETE")
+})
+
+test("quotationFileDownload downloads quotation file", async () => {
+  const { client, calls } = lexwareTestClient()
+  const result = await quotationFileDownload(client, "q1")
+
+  expect(result.success).toBe(true)
+  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/quotations/q1/file")
 })
 
 test("quotationCreate rejects invalid line items", async () => {

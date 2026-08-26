@@ -20,6 +20,7 @@ export type {
 } from "./contact/schema/contactSchemas.js"
 export { contactUpdate } from "./contact/api/contactUpdate.js"
 export { countryList } from "./country/api/countryList.js"
+export { creditNoteFileDownload } from "./creditNote/api/creditNoteFileDownload.js"
 export { dunningCreate } from "./dunning/api/dunningCreate.js"
 export { dunningGet } from "./dunning/api/dunningGet.js"
 export type { DunningCreateInput } from "./dunning/schema/dunningSchemas.js"
@@ -29,6 +30,7 @@ export { fileUpload } from "./file/api/fileUpload.js"
 export { invoiceCreate } from "./invoice/api/invoiceCreate.js"
 export { invoiceGet } from "./invoice/api/invoiceGet.js"
 export { invoiceList } from "./invoice/api/invoiceList.js"
+export { invoiceFileDownload } from "./invoice/api/invoiceFileDownload.js"
 export type {
   InvoiceBody,
   InvoiceCreateInput,
@@ -37,6 +39,7 @@ export type {
 export { invoiceUpdate } from "./invoice/api/invoiceUpdate.js"
 export { orderConfirmationCreate } from "./orderConfirmation/api/orderConfirmationCreate.js"
 export { orderConfirmationDelete } from "./orderConfirmation/api/orderConfirmationDelete.js"
+export { orderConfirmationFileDownload } from "./orderConfirmation/api/orderConfirmationFileDownload.js"
 export { orderConfirmationGet } from "./orderConfirmation/api/orderConfirmationGet.js"
 export { orderConfirmationList } from "./orderConfirmation/api/orderConfirmationList.js"
 export type {
@@ -46,6 +49,7 @@ export type {
 export { printLayoutList } from "./printLayout/api/printLayoutList.js"
 export { quotationCreate } from "./quotation/api/quotationCreate.js"
 export { quotationDelete } from "./quotation/api/quotationDelete.js"
+export { quotationFileDownload } from "./quotation/api/quotationFileDownload.js"
 export { quotationGet } from "./quotation/api/quotationGet.js"
 export { quotationList } from "./quotation/api/quotationList.js"
 export type {
