@@ -4,9 +4,7 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: {}
-  repository_dispatch:
-    types: [publish]
+  workflow_dispatch:
 
 permissions:
   id-token: write
