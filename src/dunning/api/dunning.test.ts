@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import { lexwareJsonResponse, lexwareRequestBodyJson, lexwareTestClient } from "../../shared/lexwareTestClient.test.js"
 import { dunningCreate } from "./dunningCreate.js"
+import { dunningPdfDownload } from "./dunningPdfDownload.js"
 
 test("dunningCreate fetches invoice then posts dunning", async () => {
   const { client, calls } = lexwareTestClient([
@@ -22,4 +23,18 @@ test("dunningCreate fetches invoice then posts dunning", async () => {
   expect(await lexwareRequestBodyJson(calls[1]!)).toMatchObject({
     lineItems: [{ name: "base" }, { name: "fee" }],
   })
+})
+
+function binaryResponse(contentType: string): Response {
+  return new Response(new Uint8Array([1, 2, 3]), { headers: { "Content-Type": contentType } })
+}
+
+test("dunningPdfDownload downloads a PDF dunning file", async () => {
+  const { client, calls } = lexwareTestClient([binaryResponse("application/pdf")])
+  const result = await dunningPdfDownload(client, "dunning/id")
+
+  expect(result.success).toBe(true)
+  expect(String(calls[0]?.input)).toBe("https://api.lexware.io/v1/dunnings/dunning%2Fid/file")
+  expect(new Headers(calls[0]?.init?.headers).get("Accept")).toBe("application/pdf")
+  if (result.success) expect(result.data.contentType).toBe("application/pdf")
 })

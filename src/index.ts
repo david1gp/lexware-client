@@ -20,17 +20,31 @@ export type {
 } from "./contact/schema/contactSchemas.js"
 export { contactUpdate } from "./contact/api/contactUpdate.js"
 export { countryList } from "./country/api/countryList.js"
-export { creditNoteFileDownload } from "./creditNote/api/creditNoteFileDownload.js"
+export { creditNoteCreate } from "./creditNote/api/creditNoteCreate.js"
+export { creditNotePdfDownload } from "./creditNote/api/creditNotePdfDownload.js"
+export { creditNoteXmlDownload } from "./creditNote/api/creditNoteXmlDownload.js"
+export type {
+  CreditNoteAddress,
+  CreditNoteCreateBody,
+  CreditNoteCreateInput,
+  CreditNoteLineItem,
+  CreditNoteTaxConditions,
+  CreditNoteTotalPrice,
+  CreditNoteUnitPrice,
+} from "./creditNote/schema/creditNoteSchemas.js"
 export { dunningCreate } from "./dunning/api/dunningCreate.js"
 export { dunningGet } from "./dunning/api/dunningGet.js"
+export { dunningPdfDownload } from "./dunning/api/dunningPdfDownload.js"
 export type { DunningCreateInput } from "./dunning/schema/dunningSchemas.js"
+export { deliveryNotePdfDownload } from "./deliveryNote/api/deliveryNotePdfDownload.js"
 export { fileDownload } from "./file/api/fileDownload.js"
 export type { FileUploadInput } from "./file/schema/fileSchemas.js"
 export { fileUpload } from "./file/api/fileUpload.js"
 export { invoiceCreate } from "./invoice/api/invoiceCreate.js"
 export { invoiceGet } from "./invoice/api/invoiceGet.js"
 export { invoiceList } from "./invoice/api/invoiceList.js"
-export { invoiceFileDownload } from "./invoice/api/invoiceFileDownload.js"
+export { invoicePdfDownload } from "./invoice/api/invoicePdfDownload.js"
+export { invoiceXmlDownload } from "./invoice/api/invoiceXmlDownload.js"
 export type {
   InvoiceBody,
   InvoiceCreateInput,
@@ -39,9 +53,9 @@ export type {
 export { invoiceUpdate } from "./invoice/api/invoiceUpdate.js"
 export { orderConfirmationCreate } from "./orderConfirmation/api/orderConfirmationCreate.js"
 export { orderConfirmationDelete } from "./orderConfirmation/api/orderConfirmationDelete.js"
-export { orderConfirmationFileDownload } from "./orderConfirmation/api/orderConfirmationFileDownload.js"
 export { orderConfirmationGet } from "./orderConfirmation/api/orderConfirmationGet.js"
 export { orderConfirmationList } from "./orderConfirmation/api/orderConfirmationList.js"
+export { orderConfirmationPdfDownload } from "./orderConfirmation/api/orderConfirmationPdfDownload.js"
 export type {
   OrderConfirmationBody,
   OrderConfirmationListInput,
@@ -49,24 +63,30 @@ export type {
 export { printLayoutList } from "./printLayout/api/printLayoutList.js"
 export { quotationCreate } from "./quotation/api/quotationCreate.js"
 export { quotationDelete } from "./quotation/api/quotationDelete.js"
-export { quotationFileDownload } from "./quotation/api/quotationFileDownload.js"
 export { quotationGet } from "./quotation/api/quotationGet.js"
 export { quotationList } from "./quotation/api/quotationList.js"
+export { quotationPdfDownload } from "./quotation/api/quotationPdfDownload.js"
 export type {
   QuotationBody,
   QuotationListInput,
 } from "./quotation/schema/quotationSchemas.js"
 export { quotationUpdate } from "./quotation/api/quotationUpdate.js"
 export type { LexwareBinaryResponse } from "./shared/LexwareBinaryResponse.js"
+export type { LexwarePdfResponse } from "./shared/LexwarePdfResponse.js"
+export type { LexwareXmlResponse } from "./shared/LexwareXmlResponse.js"
 export type { LexwareClient, LexwareFetch } from "./shared/LexwareClient.js"
 export { lexwareClientCreate } from "./shared/lexwareClientCreate.js"
 export type {
   LexwareBinaryRequestInput,
+  LexwarePdfRequestInput,
   LexwareRequestInput,
+  LexwareXmlRequestInput,
 } from "./shared/lexwareRequest.js"
 export {
   lexwareRequest,
   lexwareRequestBinary,
+  lexwareRequestPdf,
+  lexwareRequestXml,
 } from "./shared/lexwareRequest.js"
 export type { LexwareUnknownResponse } from "./shared/lexwareSchemas.js"
 export { voucherCreate } from "./voucher/api/voucherCreate.js"
@@ -78,6 +98,8 @@ export type {
   VoucherListInput,
 } from "./voucher/schema/voucherSchemas.js"
 export { voucherUpdate } from "./voucher/api/voucherUpdate.js"
+export { downPaymentInvoicePdfDownload } from "./downPaymentInvoice/api/downPaymentInvoicePdfDownload.js"
+export { downPaymentInvoiceXmlDownload } from "./downPaymentInvoice/api/downPaymentInvoiceXmlDownload.js"
 export { voucherListGet } from "./voucherList/api/voucherListGet.js"
 export { voucherListList } from "./voucherList/api/voucherListList.js"
 export type { VoucherListListInput } from "./voucherList/schema/voucherListSchemas.js"
