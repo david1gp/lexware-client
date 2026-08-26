@@ -16,6 +16,19 @@ if (!articles.success) {
 
 Fallible functions return `Result<T>` or `PromiseResult<T>` from `#result`. Runtime inputs and JSON responses are validated with Valibot.
 
+## Sales voucher downloads
+
+Sales voucher files use format-specific functions. Every function accepts `(client, id)` and downloads the resource's `/file` subresource:
+
+- PDF: `invoicePdfDownload`, `creditNotePdfDownload`, `downPaymentInvoicePdfDownload`, `quotationPdfDownload`, `orderConfirmationPdfDownload`, `deliveryNotePdfDownload`, and `dunningPdfDownload`.
+- XML: `invoiceXmlDownload`, `creditNoteXmlDownload`, and `downPaymentInvoiceXmlDownload`.
+
+PDF functions send `Accept: application/pdf` and return `PromiseResult<LexwarePdfResponse>`, whose `contentType` is the literal `"application/pdf"`. XML functions send `Accept: application/xml` and return `PromiseResult<LexwareXmlResponse>`, whose `contentType` is the literal `"application/xml"`. Successful responses with a missing or unexpected `Content-Type` return a `Result` error; media-type parameters are ignored and the media type is matched case-insensitively.
+
+For XRechnung invoices, the PDF result is only a visual preview and must not be used as the XRechnung document. Use `invoiceXmlDownload` for the machine-readable XML representation.
+
+The generic `fileDownload` function remains for bookkeeping files only. It returns the untyped `LexwareBinaryResponse` and does not replace the sales-voucher format-specific functions.
+
 ## CLI
 
 Install the package and run the `lexware` executable:
