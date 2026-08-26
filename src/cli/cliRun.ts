@@ -1,11 +1,17 @@
 import { type Application, run, type StricliProcess } from "@stricli/core"
-import { createResult, createResultError } from "#result"
+import { createResult, createResultError, type Result } from "#result"
 import type { CliCommandContext } from "./cliCommandContext.js"
+import { cliEnvironmentLoad } from "./cliEnvironmentLoad.js"
 import { cliJsonStringify } from "./cliJsonStringify.js"
 
 type CliRunOutput = {
   stdout: string
   stderr: string
+}
+
+type CliRunInputs = {
+  readonly envPath?: string
+  readonly inputs: readonly string[]
 }
 
 export async function cliRun(
@@ -14,10 +20,26 @@ export async function cliRun(
   process: StricliProcess,
 ): Promise<void> {
   const output: CliRunOutput = { stdout: "", stderr: "" }
-  const runProcess = cliRunProcessCreate(process, output)
+  const inputResult = cliRunInputsPrepare(inputs)
+  if (!inputResult.success) {
+    process.exitCode = 1
+    output.stderr += `${cliJsonStringify(inputResult)}\n`
+    cliRunOutputWrite(process, output)
+    return
+  }
+
+  const environmentResult = await cliEnvironmentLoad(inputResult.data.envPath, process.env)
+  if (!environmentResult.success) {
+    process.exitCode = 1
+    output.stderr += `${cliJsonStringify(environmentResult)}\n`
+    cliRunOutputWrite(process, output)
+    return
+  }
+
+  const runProcess = cliRunProcessCreate(process, output, environmentResult.data)
 
   try {
-    await run(application, inputs, { process: runProcess })
+    await run(application, inputResult.data.inputs, { process: runProcess })
   } catch (error) {
     runProcess.exitCode = 1
     output.stderr += `${cliJsonStringify(createResultError("cliRun", cliRunErrorMessage(error)))}\n`
@@ -26,9 +48,41 @@ export async function cliRun(
   cliRunOutputWrite(process, output)
 }
 
-function cliRunProcessCreate(process: StricliProcess, output: CliRunOutput): StricliProcess {
+function cliRunInputsPrepare(inputs: readonly string[]): Result<CliRunInputs> {
+  const op = "cliRunInputsPrepare"
+  const commandInputs: string[] = []
+  let envPath: string | undefined
+
+  for (let index = 0; index < inputs.length; index += 1) {
+    const input = inputs[index]
+    if (input === "--env-path") {
+      const path = inputs[index + 1]
+      if (path === undefined || path.startsWith("--")) return createResultError(op, "--env-path requires a path")
+      envPath = path
+      index += 1
+      continue
+    }
+
+    if (input?.startsWith("--env-path=")) {
+      const path = input.slice("--env-path=".length)
+      if (path.length === 0) return createResultError(op, "--env-path requires a path")
+      envPath = path
+      continue
+    }
+
+    if (input !== undefined) commandInputs.push(input)
+  }
+
+  return createResult({ envPath, inputs: commandInputs })
+}
+
+function cliRunProcessCreate(
+  process: StricliProcess,
+  output: CliRunOutput,
+  environment: Readonly<Record<string, string | undefined>>,
+): StricliProcess {
   return {
-    env: process.env,
+    env: environment,
     get exitCode() {
       return process.exitCode
     },

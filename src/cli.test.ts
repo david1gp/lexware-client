@@ -18,10 +18,14 @@ type CliResult = {
 }
 
 type CliRunOptions = {
+  readonly cwd?: string
   readonly environment?: Readonly<Record<string, string>>
   readonly executable?: string
+  readonly runtime?: CliRuntime
   readonly unsetEnvironment?: readonly string[]
 }
+
+type CliRuntime = "bun" | "node"
 
 type MockApiRequest = {
   readonly authorization: string | null
@@ -58,6 +62,7 @@ test("CLI success and help output are JSON", async () => {
   expect(helpResult.success).toBe(true)
   expect(helpResult.data).toBeString()
   expect(helpResult.data).toContain("lexware article")
+  expect(helpResult.data).toContain("--env-path")
 
   const nestedHelp = await cliExecutableRun(["invoice", "create", "--help"])
   expect(nestedHelp.exitCode).toBe(0)
@@ -65,6 +70,16 @@ test("CLI success and help output are JSON", async () => {
   const nestedHelpResult = cliResultParse(nestedHelp.stdout)
   expect(nestedHelpResult.success).toBe(true)
   expect(nestedHelpResult.data).toContain("--line-item-type]...")
+  expect(nestedHelpResult.data).toContain("--env-path")
+
+  const missingEnvPath = await cliExecutableRun(["--env-path", "--help"])
+  expect(missingEnvPath.exitCode).not.toBe(0)
+  expect(missingEnvPath.stdout).toBe("")
+  expect(cliResultParse(missingEnvPath.stderr)).toEqual({
+    success: false,
+    op: "cliRunInputsPrepare",
+    errorMessage: "--env-path requires a path",
+  })
 })
 
 test("CLI delegates representative read and write routes to the API", async () => {
@@ -222,7 +237,7 @@ test("CLI uses environment token fallbacks and rejects missing authentication", 
   try {
     const legacy = await cliExecutableRun(["country", "list", "--base-url", api.baseUrl], {
       environment: { LEXWARE_ACCESS_TOKEN: "legacy-token" },
-      unsetEnvironment: ["LEXWARE_TOKEN"],
+      unsetEnvironment: ["LEXWARE_TOKEN", "LEXWARE_API_KEY"],
     })
     expect(legacy.exitCode).toBe(0)
     expect(legacy.stderr).toBe("")
@@ -236,6 +251,54 @@ test("CLI uses environment token fallbacks and rejects missing authentication", 
     expect(api.requests).toHaveLength(1)
   } finally {
     api.stop()
+  }
+})
+
+test("CLI loads default and selected environment files without overriding inherited values", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "lexware-cli-env-"))
+  const envFilePath = join(directory, "selected.env")
+  await writeFile(join(directory, ".env"), "LEXWARE_API_KEY=file-api-key\n")
+  await writeFile(envFilePath, "LEXWARE_TOKEN=file-token\n")
+  const api = mockApiStart(() => jsonResponse({ countries: ["DE"] }))
+
+  try {
+    const inherited = await cliExecutableRun(["country", "list", "--base-url", api.baseUrl], {
+      cwd: directory,
+      environment: { LEXWARE_API_KEY: "inherited-api-key" },
+      unsetEnvironment: ["LEXWARE_TOKEN"],
+    })
+    expect(inherited.exitCode).toBe(0)
+    expect(cliResultParse(inherited.stdout)).toEqual({ success: true, data: { countries: ["DE"] } })
+    expect(api.requests[0]?.authorization).toBe("Bearer inherited-api-key")
+
+    const selected = await cliExecutableRun(["--env-path", envFilePath, "country", "list", "--base-url", api.baseUrl], {
+      cwd: directory,
+      unsetEnvironment: ["LEXWARE_TOKEN", "LEXWARE_API_KEY"],
+    })
+    expect(selected.exitCode).toBe(0)
+    expect(cliResultParse(selected.stdout)).toEqual({ success: true, data: { countries: ["DE"] } })
+    expect(api.requests[1]?.authorization).toBe("Bearer file-token")
+
+    const selectedAfterRoute = await cliExecutableRun(
+      ["country", "list", "--base-url", api.baseUrl, `--env-path=${envFilePath}`],
+      { cwd: directory, unsetEnvironment: ["LEXWARE_TOKEN", "LEXWARE_API_KEY"] },
+    )
+    expect(selectedAfterRoute.exitCode).toBe(0)
+    expect(api.requests[2]?.authorization).toBe("Bearer file-token")
+
+    const missing = await cliExecutableRun(["--env-path", join(directory, "missing.env"), "--help"], {
+      cwd: directory,
+    })
+    expect(missing.exitCode).not.toBe(0)
+    expect(missing.stdout).toBe("")
+    expect(cliResultParse(missing.stderr)).toEqual({
+      success: false,
+      op: "cliEnvironmentLoad",
+      errorMessage: `Unable to read environment file "${join(directory, "missing.env")}"`,
+    })
+  } finally {
+    api.stop()
+    await rm(directory, { force: true, recursive: true })
   }
 })
 
@@ -403,27 +466,49 @@ test("CLI uploads files and returns download metadata while writing bytes only w
   }
 })
 
-test("built package bin executes and keeps help output JSON", async () => {
+test("built package bin executes under the Node and Bun runtime matrix", async () => {
   expect(await Bun.file(builtCliPath).exists()).toBe(true)
+  const directory = await mkdtemp(join(tmpdir(), "lexware-cli-runtime-"))
+  const envPath = join(directory, "runtime.env")
+  await writeFile(envPath, "LEXWARE_TOKEN=runtime-token\n")
+  const api = mockApiStart(() => jsonResponse({ countries: ["DE"] }))
 
-  const result = await cliExecutableRun(["--help"], { executable: builtCliPath })
-  expect(result.exitCode).toBe(0)
-  expect(result.stderr).toBe("")
-  expect(cliResultParse(result.stdout)).toMatchObject({ success: true })
+  try {
+    for (const runtime of ["bun", "node"] as const) {
+      const result = await cliExecutableRun(["--env-path", envPath, "country", "list", "--base-url", api.baseUrl], {
+        cwd: directory,
+        executable: builtCliPath,
+        runtime,
+        unsetEnvironment: ["LEXWARE_TOKEN"],
+      })
+      expect(result.exitCode).toBe(0)
+      expect(result.stderr).toBe("")
+      expect(cliResultParse(result.stdout)).toEqual({ success: true, data: { countries: ["DE"] } })
+    }
+    expect(api.requests.map((request) => request.authorization)).toEqual([
+      "Bearer runtime-token",
+      "Bearer runtime-token",
+    ])
+  } finally {
+    api.stop()
+    await rm(directory, { force: true, recursive: true })
+  }
 })
 
 async function cliExecutableRun(args: readonly string[], options: CliRunOptions = {}): Promise<CliExecution> {
   const executable = options.executable ?? sourceCliPath
-  const command = executable.endsWith(".ts") ? [process.execPath, executable, ...args] : [executable, ...args]
+  const command = cliCommandCreate(executable, args, options.runtime)
   const environment: Record<string, string | undefined> = {
     ...process.env,
     LEXWARE_TOKEN: "",
+    LEXWARE_API_KEY: "",
     LEXWARE_ACCESS_TOKEN: "",
     ...options.environment,
   }
   for (const variable of options.unsetEnvironment ?? []) delete environment[variable]
 
   const child = Bun.spawn(command, {
+    cwd: options.cwd,
     env: environment,
     stderr: "pipe",
     stdout: "pipe",
@@ -436,6 +521,13 @@ async function cliExecutableRun(args: readonly string[], options: CliRunOptions 
   ])
 
   return { exitCode, stderr, stdout }
+}
+
+function cliCommandCreate(executable: string, args: readonly string[], runtime?: CliRuntime): string[] {
+  if (runtime === "bun") return [process.execPath, "--no-env-file", executable, ...args]
+  if (runtime === "node") return ["node", executable, ...args]
+  if (executable.endsWith(".ts")) return [process.execPath, "--no-env-file", executable, ...args]
+  return [executable, ...args]
 }
 
 function cliResultParse(value: string): CliResult {

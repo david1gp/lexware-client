@@ -23,6 +23,7 @@ import { voucherListCommand } from "./voucherList/cli/voucherListCommand.js"
 
 const lexwareRootInputSchema = a.object({
   baseUrl: a.optional(a.pipe(a.string(), a.url())),
+  envPath: a.optional(a.pipe(a.string(), a.minLength(1))),
 })
 
 type LexwareRootInput = a.InferOutput<typeof lexwareRootInputSchema>
@@ -46,6 +47,9 @@ const lexwareRootCommand = buildCommand({
     flags: {
       baseUrl: {
         ...cliClientOptions.baseUrl,
+      },
+      envPath: {
+        ...cliClientOptions.envPath,
       },
     },
   },
@@ -72,6 +76,8 @@ const lexwareRouteMap = buildRouteMap({
   defaultCommand: "root",
   docs: {
     brief: "Run Lexware Office API commands",
+    fullDescription:
+      "Run Lexware Office API commands\n\nGlobal flags\n  --env-path <path>  Path to the environment file",
     hideRoute: {
       root: true,
     },
