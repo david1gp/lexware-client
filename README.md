@@ -25,15 +25,22 @@ bun add --global @adaptive-ds/lexware-client
 lexware --help
 ```
 
+When invoking the CLI directly with Bun, use `bun --no-env-file` so the CLI controls environment loading (for example, `bun --no-env-file ./dist/cli.js --help`). Node execution does not require this flag.
+
 The CLI prints one JSON result per invocation. Successes go to stdout. Help also returns a successful JSON result. Failures go to stderr and exit with status 1.
 
-Commands accept named options only. Positional values and JSON input are rejected. Use `--access-token` for authentication. It takes precedence over `LEXWARE_TOKEN`, which takes precedence over `LEXWARE_ACCESS_TOKEN`.
+Commands accept named options only. Positional values and JSON input are rejected. The CLI automatically loads `.env` from the current directory when it exists. Use the global `--env-path <path>` option to select another environment file; inherited process environment values take precedence over values from the file. A missing default `.env` is ignored, but an explicitly selected file must be readable.
+
+Authentication is resolved in this order: `--access-token`, `LEXWARE_TOKEN`, `LEXWARE_API_KEY`, then `LEXWARE_ACCESS_TOKEN`. `LEXWARE_API_KEY` and the legacy `LEXWARE_ACCESS_TOKEN` remain supported as environment aliases.
 
 ```bash
 export LEXWARE_TOKEN=your-token
 lexware article list --page 1 --type PRODUCT
 lexware article get --id article-id
 lexware article create --type PRODUCT --title "Desk" --leading-price NET --net-price 99
+
+# Or select an environment file explicitly.
+lexware --env-path ./production.env article list
 ```
 
 Use `--base-url` to target another API endpoint. Nested fields use prefixed option names. Variadic fields can be repeated, which keeps each line item typed without accepting a JSON document:
