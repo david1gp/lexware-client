@@ -2,7 +2,8 @@ import * as a from "valibot"
 import { createResult, createResultError, type PromiseResult, resultTryParsingFetchErr } from "#result"
 import type { LexwareBinaryResponse } from "./LexwareBinaryResponse.js"
 import type { LexwareClient } from "./LexwareClient.js"
-import { lexwareErrorData } from "./lexwareErrorData.js"
+import type { LexwarePdfResponse } from "./LexwarePdfResponse.js"
+import type { LexwareXmlResponse } from "./LexwareXmlResponse.js"
 import { lexwareFilenameFromContentDisposition } from "./lexwareFilenameFromContentDisposition.js"
 import type { LexwareQuery } from "./lexwareQueryAppend.js"
 import { lexwareQueryAppend } from "./lexwareQueryAppend.js"
@@ -20,6 +21,10 @@ export type LexwareRequestInput<TSchema extends a.GenericSchema = a.GenericSchem
 export type LexwareBinaryRequestInput = Omit<LexwareRequestInput, "schema"> & {
   binary: true
 }
+
+export type LexwarePdfRequestInput = LexwareBinaryRequestInput
+
+export type LexwareXmlRequestInput = LexwareBinaryRequestInput
 
 export async function lexwareRequest<TSchema extends a.GenericSchema>(
   client: LexwareClient,
@@ -115,4 +120,54 @@ export async function lexwareRequestBinary(
     filename: lexwareFilenameFromContentDisposition(response.headers.get("Content-Disposition")),
     headers: response.headers,
   })
+}
+
+export async function lexwareRequestPdf(
+  client: LexwareClient,
+  input: LexwarePdfRequestInput,
+): PromiseResult<LexwarePdfResponse> {
+  return lexwareRequestTypedBinary(client, input, "application/pdf", "lexwareRequestPdf")
+}
+
+export async function lexwareRequestXml(
+  client: LexwareClient,
+  input: LexwareXmlRequestInput,
+): PromiseResult<LexwareXmlResponse> {
+  return lexwareRequestTypedBinary(client, input, "application/xml", "lexwareRequestXml")
+}
+
+async function lexwareRequestTypedBinary<TContentType extends "application/pdf" | "application/xml">(
+  client: LexwareClient,
+  input: LexwareBinaryRequestInput,
+  expectedContentType: TContentType,
+  defaultOp: string,
+): PromiseResult<LexwareTypedResponse<TContentType>> {
+  const op = input.op ?? defaultOp
+  const headers = new Headers(input.headers)
+  headers.set("Accept", expectedContentType)
+
+  const result = await lexwareRequestBinary(client, { ...input, headers, op })
+  if (!result.success) return result
+
+  const contentType = result.data.contentType
+  const normalizedContentType = contentType?.split(";", 1)[0]?.trim().toLowerCase()
+  if (normalizedContentType !== expectedContentType) {
+    return createResultError(
+      op,
+      `Invalid successful response Content-Type: expected ${expectedContentType}, received ${contentType ?? "missing"}`,
+      contentType,
+    )
+  }
+
+  return createResult({
+    ...result.data,
+    contentType: expectedContentType,
+  })
+}
+
+type LexwareTypedResponse<TContentType extends "application/pdf" | "application/xml"> = Omit<
+  LexwareBinaryResponse,
+  "contentType"
+> & {
+  contentType: TContentType
 }
