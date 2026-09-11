@@ -9,6 +9,7 @@ import type { CliCommandContext } from "./cli/cliCommandContext.js"
 import { cliInputValidate } from "./cli/cliInputValidate.js"
 import { cliResultWrite } from "./cli/cliResultWrite.js"
 import { cliRun } from "./cli/cliRun.js"
+import { cliVersionCommand } from "./cli/cliVersionCommand.js"
 import { contactCommand } from "./contact/cli/contactCommand.js"
 import { countryCommand } from "./country/cli/countryCommand.js"
 import { creditNoteCommand } from "./creditNote/cli/creditNoteCommand.js"
@@ -90,6 +91,7 @@ const lexwareRouteMap = buildRouteMap({
     recurringTemplate: recurringTemplateCommand,
     voucher: voucherCommand,
     voucherList: voucherListCommand,
+    version: cliVersionCommand,
   },
   defaultCommand: "root",
   docs: {
@@ -118,6 +120,12 @@ export const lexwareCommand = buildApplication(lexwareRouteMap, {
   },
 })
 
-await cliRun(lexwareCommand, process.argv.slice(2), process)
+const cliInputs = process.argv.slice(2)
+const normalizedCliInputs =
+  cliInputs.includes("--version") && cliInputs.includes("--verbose")
+    ? cliInputs.map((input) => (input === "--version" ? "version" : input))
+    : cliInputs
+
+await cliRun(lexwareCommand, normalizedCliInputs, process)
 
 if (process.exitCode !== undefined && process.exitCode !== null && process.exitCode !== 0) process.exitCode = 1

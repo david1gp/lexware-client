@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { packageVersion } from "./packageVersion.js"
 
 type CliExecution = {
   readonly exitCode: number
@@ -45,6 +46,36 @@ type MockApi = {
 
 const sourceCliPath = new URL("./cli.ts", import.meta.url).pathname
 const builtCliPath = new URL("../dist/cli.js", import.meta.url).pathname
+
+test("preserves plain version output and renders verbose metadata without API access", async () => {
+  const plain = await cliExecutableRun(["--version"], { unsetEnvironment: ["LEXWARE_TOKEN", "LEXWARE_API_KEY"] })
+  expect(plain.exitCode).toBe(0)
+  expect(plain.stderr).toBe("")
+  expect(cliResultParse(plain.stdout)).toEqual({ success: true, data: packageVersion })
+
+  const command = await cliExecutableRun(["version"], { unsetEnvironment: ["LEXWARE_TOKEN", "LEXWARE_API_KEY"] })
+  expect(command.exitCode).toBe(0)
+  expect(command.stderr).toBe("")
+  expect(cliResultParse(command.stdout)).toEqual({ success: true, data: packageVersion })
+
+  const verbose = await cliExecutableRun(["version", "--verbose"], {
+    unsetEnvironment: ["LEXWARE_TOKEN", "LEXWARE_API_KEY", "LEXWARE_ACCESS_TOKEN"],
+  })
+  expect(verbose.exitCode).toBe(0)
+  expect(verbose.stderr).toBe("")
+  const rendered = cliResultParse(verbose.stdout).data
+  expect(rendered).toContain(`${packageVersion}\nuser agent: @adaptive-ds/lexware-client/${packageVersion}`)
+  expect(rendered).toContain("description: TypeScript Result-based API clients for Lexware Office.")
+  expect(rendered).toContain("author: unavailable")
+  expect(rendered).toContain("license: MIT")
+  expect(rendered).toContain("project: https://github.com/david1gp/lexware-client")
+  expect(rendered).toContain("installation type: development checkout")
+  expect(rendered).toContain(`runtime: bun ${Bun.version}`)
+  expect(rendered).toContain("runtime requirements: unavailable")
+  expect(rendered).toContain(`platform: ${process.platform} ${process.arch} (OS release `)
+  expect(rendered).toMatch(/executable: .+\nexecutable target: .+/)
+  expect(rendered).not.toContain("build details:")
+})
 
 test("CLI success and help output are JSON", async () => {
   const root = await cliExecutableRun([])
