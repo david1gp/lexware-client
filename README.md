@@ -82,3 +82,7 @@ lexware file upload --type PDF --filename invoice.pdf --content-type application
 lexware file download --id file-id
 lexware file download --id file-id --output ./downloaded.pdf
 ```
+
+## Webhook events
+
+Use `webhookEventParse(rawBody, signatureHeader, { publicKeyPem? })` with the exact raw request bytes and the `X-Lxo-Signature` header before processing an event. It returns a `Result<WebhookEvent>`; error codes are `webhook.missing-signature`, `webhook.invalid-signature`, and `webhook.invalid-payload`. The default RSA-SHA512 key is Lexware’s [official public key](https://developers.lexware.io/webhookSignature/public/public_key.pub); override it only for testing or key rotation. `webhookVerifySignature(rawBody, signatureBase64, publicKeyPem?)` verifies the signature alone, and `webhookEventSchema` validates the payload. Never reserialize JSON before verification.
